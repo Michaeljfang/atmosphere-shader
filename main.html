@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="css/main.css"/>
+	<title>three js page</title>
+</head>
+<body>
+	<!-- <div id="loading_screen">LOADING</div> -->
+	<canvas id="bg"></canvas>
+	<object id="frag" data="./atmo_shader_frag.glsl" type="text/plain"></object>
+	<object id="vert" data="./atmo_shader_vert.glsl" type="text/plain"></object>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.js" integrity="sha512-yewcaF6iD3IU62N4N33Y8C7Zo3jx50MUaEMII/kQAdWnLdw4f3rab2Ay9Xp4O6waXDZhx7i/nvm+qGuJhXF+uw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script type="module" src="./main.js"></script>
+	<!-- <script type="module" src="./main_async.js"></script> -->
+
+	<h1>Create a planetary atmosphere</h1> 
+	<!-- <div class="controls">
+		Nothing here
+		<input type="range" min="0" max="200" value="100" oninput="rangeValue.innerText = this.value">
+	</div> -->
+
+	<div class="info_pane">
+		<a href="https://www.github.com/michaeljfang">Source code</a>
+		<br>
+		<span class="small_text">This site downloads the three.js library from Cloudflare</span>
+	</div>
+	<noscript>
+		Please enable JavaScript: it creates the 3D visuals.
+	</noscript>
+</body>
+</html>
+
+<!-- python3 -m http.server -->

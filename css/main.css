@@ -1,0 +1,80 @@
+canvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: -1;
+}
+body {
+	font-family: 'noto sans';
+	background-color: black;
+	margin: 0;
+}
+
+a:hover {
+	cursor: pointer;
+}
+
+h1 {
+	color: #999999;
+	font-weight: 500;
+	margin-left: 20px;
+	margin-bottom: 5px;
+}
+
+.controls {
+	margin: 20px;
+	padding: 20px;
+	width: 230px;
+	height: 400px;
+	position: fixed;
+	font-size: 20px;
+	color: white;
+	border-color: grey;
+	border-width: 1px;
+	border-radius: 7px;
+	background-color: #111111da;
+	border-style: solid;
+	z-index: 1;
+}
+.what {
+	background-color: green;
+	z-index: 1;
+}
+
+.info_pane {
+	position: fixed;
+	bottom: 0;
+	right: 1%;
+	width: 100%;
+	font-family: 'noto sans';
+	font-size: 13px;
+	color: grey;
+	margin-bottom: 10px;
+	text-align:right;
+}
+
+.small_text {
+	font-size: 11px;
+}
+
+#loading_screen {
+	/* font-size: 100px;
+	color: white;
+	background-color: black;
+	position: fixed;
+	margin-top: 20px;
+	margin-left: 50%; */
+	top: 0;
+	left: 0;
+	display: flex;
+	position: fixed;
+	color: white;
+	border-width: 20px;
+	border-color: white;
+	border-radius: 50%;
+	align-items: center;
+	align-content: center;
+	width: 100vw;
+	height: 100vh;
+	z-index: 1;
+}
