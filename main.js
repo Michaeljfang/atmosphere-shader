@@ -3,7 +3,8 @@ const scene = new THREE.Scene();
 const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 2000);
 // FOV, aspect ratio, near clip, far clip
 const renderer = new THREE.WebGLRenderer({
-	canvas: document.querySelector('#bg')
+	canvas: document.querySelector('#bg'),
+	//antialiasing:true
 });
 THREE.Cache.enabled = true;
 
@@ -45,7 +46,7 @@ dir_light.position.set(
 	light_distance * Math.sin(deg_to_rad(light_direction[1])),
 	light_distance * Math.cos(deg_to_rad(light_direction[1])) * Math.cos(deg_to_rad(light_direction[0]))
 );
-scene.add( dir_light );
+scene.add(dir_light);
 
 
 
@@ -54,7 +55,8 @@ scene.add(ambient);
 
 
 // RESOURCES
-const planet_mesh = new THREE.SphereGeometry(6.378, 64, 32);
+var planet_radius = 6.378
+const planet_mesh = new THREE.SphereGeometry(planet_radius, 64, 32);
 const texture_loader = new THREE.TextureLoader();
 
 var earth_diffuse_tex;
@@ -100,8 +102,9 @@ function light_rotation(key_code){
 
 document.addEventListener('keydown', event_handler, false);
 function event_handler(key) {
+	// console.log(key);
 	// camera controls
-	if (188 === key.keyCode && persp.position.z < 50){
+	if (188 === key.keyCode && persp.position.z < 300){
 		persp.position.z *= 1.1;
 	} else if (190 === key.keyCode && persp.position.z > 6.5){
 		persp.position.z /= 1.1;
@@ -113,6 +116,12 @@ function event_handler(key) {
 		persp.position.y -= 0.1;
 	} else if (87 === key.keyCode && persp.position.y < 1) {
 		persp.position.y += 0.1;
+	}
+	
+	else if (key.keyCode == 173 && persp.fov < 160){
+		persp.fov += 5;
+	} else if (key.keyCode == 61 && persp.fov > 5){
+		persp.fov -= 5;
 	}
 	// planet tilt
 	else if (82 === key.keyCode && planet.rotation.x > -1) {
@@ -129,27 +138,45 @@ function event_handler(key) {
 		y_rotation_speed += 0.005;
 	}
 
+	// debug planet show/hide
+	else if (key.keyCode == 80) {
+		planet.visible = !planet.visible;
+	}
+		
+	else if (key.keyCode == 219){
+		atmo_mat_custom.side = THREE.BackSide;
+	} else if (key.keyCode == 221){
+		atmo_mat_custom.side = THREE.FrontSide;
+	} else if (key.keyCode == 12 || key.keyCode == 101){
+		atmo.position.set(0,0,0);
+		atmo.rotation.set(0,0,0);
+	}
+
+
 	// light controls
 	else if ([37, 38, 39, 40].includes(key.keyCode)) {
 		light_rotation(key.keyCode);
 	}
 
-	// debug atmo rotation
-	else if (key.keyCode === 100){
-		if (key.shiftkey){atmo.position.y += 0.5;}
+	// debug atmo rotation or translation
+	else if (key.keyCode === 104){
+		if (key.shiftKey){atmo.position.y += 0.5;;}
 		else {atmo.rotation.y -= 0.1;}
-	} else if (key.keyCode === 102){
+	} else if (key.keyCode === 98){
 		if (key.shiftKey){atmo.position.y -= 0.5;}
 		else {atmo.rotation.y += 0.1;}
 		
-	} else if (key.keyCode == 104){
+	} else if (key.keyCode == 102){
 		if (key.shiftKey){atmo.position.x += 0.5;}
 		else {atmo.rotation.x += 0.1;}
 		
-	} else if (key.keyCode == 98){
+	} else if (key.keyCode == 100){
 		if (key.shiftKey){atmo.position.x -= 0.5;}
 		else {atmo.rotation.x -= 0.1;}
-		
+	} else if (key.keyCode == 105 && key.shiftKey){
+		atmo.position.z -= 0.5;
+	} else if (key.keyCode == 99 && key.shiftKey){
+		atmo.position.z += 0.5;
 	}
 
 
@@ -170,9 +197,13 @@ function animate() {
 	planet.rotation.y += y_rotation_speed;
 
 	// update shader uniforms
-	atmo_mat_custom.uniforms.obj_position.value.x = new THREE.Vector3(
-		atmo.position
-	)
+	atmo_mat_custom.uniforms.obj_position.value = new THREE.Vector3(
+		atmo.position.x, atmo.position.y, atmo.position.z
+	);
+	atmo_mat_custom.uniforms.sun_position.value = new THREE.Vector3(
+		dir_light.position.x, dir_light.position.y, dir_light.position.z
+	);
+	atmo_mat_custom.uniforms.planet_radius.value = planet_radius;
 
 	requestAnimationFrame( animate );
 	renderer.render( scene, persp );
@@ -195,7 +226,7 @@ function start_page(){
 
 	// all finished.
 	const earth_mat = new THREE.MeshStandardMaterial({
-		map: earth_diffuse_tex, roughnessMap: earth_roughness_tex,
+		map: earth_diffuse_tex, roughnessMap: earth_roughness_tex
 		//needsUpdate: true
 	})
 	
@@ -205,7 +236,7 @@ function start_page(){
 
 	const atmo_sphere_subdivision = 64;
 
-	const atmo_mesh = new THREE.SphereGeometry(6.478, atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
+	const atmo_mesh = new THREE.SphereGeometry(planet_radius + 0.1, atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
 	const atmo_mat = new THREE.MeshPhysicalMaterial({
 		color: 0x888890, opacity: 0.5, transparent: true
 	})
@@ -213,7 +244,9 @@ function start_page(){
 	atmo_mat_custom = new THREE.ShaderMaterial({
 		fragmentShader: atmo_shader_frag, vertexShader: atmo_shader_vert, transparent: true, wireframe: false,
 		uniforms: {
-			obj_position: {value: new THREE.Vector3(0.0,0.0,0.0)}
+			obj_position: {value: new THREE.Vector3(0.0,0.0,0.0)},
+			sun_position: {value: new THREE.Vector3(dir_light.position.xyz)},
+			planet_radius: {value: planet_radius}
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)

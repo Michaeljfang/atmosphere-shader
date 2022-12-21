@@ -1,8 +1,9 @@
-//#version 420
 
 out vec4 vpos;
-out vec3 pos;
+out vec3 frag_position;
 uniform vec3 obj_position;
+uniform vec3 sun_position;
+uniform float planet_radius;
 
 // // = object.matrixWorld
 // uniform modelMatrix;
@@ -27,5 +28,5 @@ void main(){
 	obj_position;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	vpos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-	pos = position;
+	frag_position = position;
 }
