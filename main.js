@@ -1,4 +1,3 @@
-
 const scene = new THREE.Scene();
 const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 2000);
 // FOV, aspect ratio, near clip, far clip
@@ -25,13 +24,16 @@ const resources_list = {
 	"atmo_vert": false,
 }
 
+const parameters = {
+	'planet_radius': 6.378,
+	'planet_density': 2
+}
+
 const deg_to_rad = (deg) => (Math.PI/180) * deg;
 
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild( renderer.domElement );
-
-
 persp.position.set(0,0,10);
 
 
@@ -55,8 +57,8 @@ scene.add(ambient);
 
 
 // RESOURCES
-var planet_radius = 6.378
-const planet_mesh = new THREE.SphereGeometry(planet_radius, 64, 32);
+
+const planet_mesh = new THREE.SphereGeometry(parameters['planet_radius'], 64, 32);
 const texture_loader = new THREE.TextureLoader();
 
 var earth_diffuse_tex;
@@ -77,7 +79,6 @@ var atmo_shader_vert;
 file_loader.load("./atmo_shader_vert.glsl", (response) => {
 	atmo_shader_vert = response; resources_list['atmo_vert'] = true; start_page();
 });
-
 
 function light_rotation(key_code){
 	light_direction;
@@ -203,7 +204,7 @@ function animate() {
 	atmo_mat_custom.uniforms.sun_position.value = new THREE.Vector3(
 		dir_light.position.x, dir_light.position.y, dir_light.position.z
 	);
-	atmo_mat_custom.uniforms.planet_radius.value = planet_radius;
+	atmo_mat_custom.uniforms.planet_radius.value = parameters['planet_radius'];
 
 	requestAnimationFrame( animate );
 	renderer.render( scene, persp );
@@ -236,7 +237,7 @@ function start_page(){
 
 	const atmo_sphere_subdivision = 64;
 
-	const atmo_mesh = new THREE.SphereGeometry(planet_radius + 0.1, atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
+	const atmo_mesh = new THREE.SphereGeometry(parameters['planet_radius'] + 0.1, atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
 	const atmo_mat = new THREE.MeshPhysicalMaterial({
 		color: 0x888890, opacity: 0.5, transparent: true
 	})
@@ -246,7 +247,7 @@ function start_page(){
 		uniforms: {
 			obj_position: {value: new THREE.Vector3(0.0,0.0,0.0)},
 			sun_position: {value: new THREE.Vector3(dir_light.position.xyz)},
-			planet_radius: {value: planet_radius}
+			planet_radius: {value: parameters['planet_radius']}
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)
