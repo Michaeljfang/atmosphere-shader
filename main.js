@@ -148,6 +148,8 @@ function event_handler(key) {
 		atmo_mat_custom.side = THREE.BackSide;
 	} else if (key.keyCode == 221){
 		atmo_mat_custom.side = THREE.FrontSide;
+	} else if (key.keyCode == 220){
+		atmo_mat_custom.side = THREE.DoubleSide;
 	} else if (key.keyCode == 12 || key.keyCode == 101){
 		atmo.position.set(0,0,0);
 		atmo.rotation.set(0,0,0);
@@ -235,7 +237,7 @@ function start_page(){
 	scene.add(planet);
 	planet.rotation.x = 0.8;
 
-	const atmo_sphere_subdivision = 64;
+	const atmo_sphere_subdivision = 128;
 
 	const atmo_mesh = new THREE.SphereGeometry(parameters['planet_radius'] + 0.1, atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
 	const atmo_mat = new THREE.MeshPhysicalMaterial({

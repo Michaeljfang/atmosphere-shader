@@ -35,7 +35,7 @@ void main(){
 
 	vec3 cam_to_frag = world_frag_position - cameraPosition;
 	vec3 cam_to_obj = obj_position - cameraPosition;
-	float target_direction = dot(normalize(cam_to_frag), normalize(cam_to_obj));
+	float target_direction_cos = dot(normalize(cam_to_frag), normalize(cam_to_obj));
 
 
 	// computed variables
@@ -45,14 +45,16 @@ void main(){
 	float sea_level_temperature = 300.0;
 	float planet_mass = 600.0;
 
-	float opacity = sea_level_density * pow(2.7182818284,
-		(
-			( - (gravitational_acceleration * planet_mass) / (GAS_CONSTANT * sea_level_temperature) ) *
-			(sqrt(pow(distance_to_obj, 2.0) * (1.0 - pow(target_direction, 2.0))) - planet_radius)
-		)
-	);
+	// float opacity = sea_level_density * pow(2.7182818284,
+	// 	(
+	// 		( - (gravitational_acceleration * planet_mass) / (GAS_CONSTANT * sea_level_temperature) ) *
+	// 		(sqrt(pow(distance_to_obj, 2.0) * (1.0 - pow(target_direction_cos, 2.0)) + pow(X, 2.0)) - planet_radius)
+	// 	)
+	// );
+
+	float planet_radius_cos = sqrt(pow(distance_to_obj, 2.0) - pow(planet_radius, 2.0)) / distance_to_obj;
 
 	//gl_FragColor = vec4(frag_position.x/planet_radius, frag_position.y/planet_radius, frag_position.z/(planet_radius * 3.0), 0.9);
 	//gl_FragColor = vec4((frag_position.xyz/10.0) + 0.5 + obj_position.xyz, 0.5);
-	gl_FragColor = vec4(1.0, 1.0, 1.0, pow(target_direction, 3.0)/3.0);
+	gl_FragColor = vec4(1.0, 1.0, 1.0, 0.4*(1.5-(1.0-target_direction_cos)/(1.0-planet_radius_cos)));
 }
