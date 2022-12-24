@@ -4,6 +4,10 @@ out vec3 frag_position;
 uniform vec3 obj_position;
 uniform vec3 sun_position;
 uniform float planet_radius;
+uniform float atmo_radius;
+
+uniform int view_path_samples;
+uniform int light_path_samples;
 
 // // = object.matrixWorld
 // uniform modelMatrix;

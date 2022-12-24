@@ -26,15 +26,49 @@ const resources_list = {
 
 const parameters = {
 	'planet_radius': 6.378,
-	'planet_density': 2
+	'atmo_radius': 6.478,
+	'planet_density': 2,
+
+	'view_path_samples': 5,
+	'light_path_samples': 5
 }
+
+
+// sliders
+// var view_path_samples_slider = document.getElementById("view_path_samples");
+// view_path_samples_slider.oninput = () => {
+// 	parameters['view_path_samples'] = view_path_samples_slider.value;
+// 	document.getElementById("view_path_samples_display").textContent = String(view_path_samples_slider.value);
+// }
+
+// const controls = ["view_path_samples", "light_path_samples"];
+// const numbers = [0,1];
+// var controls_html = [null, null];
+
+// for (var i=0; i<controls.length; i++){
+// 	controls_html[i] = document.getElementById(controls[i]);
+// 	controls_html[i].oninput = () => {
+// 		parameters[controls[i]] = controls_html[i].value;
+// 		document.getElementById(controls[i]+"_display").textContent = String(controls_html[i].value);
+// 	}
+// }
+
+var view_path_samples_slider = document.getElementById("view_path_samples");
+view_path_samples_slider.oninput = () => {parameters["view_path_samples"] = view_path_samples_slider.value;
+document.getElementById("view_path_samples_display").textContent = String(view_path_samples_slider.value);};
+
+var light_path_samples_slider = document.getElementById("light_path_samples");
+light_path_samples_slider.oninput = () => {parameters["light_path_samples"] = light_path_samples_slider.value;
+document.getElementById("light_path_samples_display").textContent = String(light_path_samples_slider.value);};
+
+
 
 const deg_to_rad = (deg) => (Math.PI/180) * deg;
 
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild( renderer.domElement );
-persp.position.set(0,0,10);
+persp.position.set(0,0,11);
 
 
 // DIRECTIONAL LIGHT
@@ -57,8 +91,7 @@ scene.add(ambient);
 
 
 // RESOURCES
-
-const planet_mesh = new THREE.SphereGeometry(parameters['planet_radius'], 64, 32);
+const planet_mesh = new THREE.SphereGeometry(parameters['planet_radius'], 128, 64);
 const texture_loader = new THREE.TextureLoader();
 
 var earth_diffuse_tex;
@@ -105,10 +138,10 @@ document.addEventListener('keydown', event_handler, false);
 function event_handler(key) {
 	// console.log(key);
 	// camera controls
-	if (188 === key.keyCode && persp.position.z < 300){
-		persp.position.z *= 1.1;
+	if (188 === key.keyCode && persp.position.z < 400){
+		persp.position.z *= 1.05;
 	} else if (190 === key.keyCode && persp.position.z > 6.5){
-		persp.position.z /= 1.1;
+		persp.position.z /= 1.05;
 	} else if (65 === key.keyCode && persp.position.x > -2) {
 		persp.position.x -= 0.1;
 	} else if (68 === key.keyCode && persp.position.x < 2) {
@@ -119,9 +152,9 @@ function event_handler(key) {
 		persp.position.y += 0.1;
 	}
 	
-	else if (key.keyCode == 173 && persp.fov < 160){
+	else if (key.keyCode == 173 && persp.fov < 175){
 		persp.fov += 5;
-	} else if (key.keyCode == 61 && persp.fov > 5){
+	} else if (key.keyCode == 61 && persp.fov > 2){
 		persp.fov -= 5;
 	}
 	// planet tilt
@@ -207,9 +240,12 @@ function animate() {
 		dir_light.position.x, dir_light.position.y, dir_light.position.z
 	);
 	atmo_mat_custom.uniforms.planet_radius.value = parameters['planet_radius'];
+	atmo_mat_custom.uniforms.atmo_radius.value = parameters['atmo_radius'];
+	atmo_mat_custom.uniforms.view_path_samples = parameters['view_path_samples'];
+	atmo_mat_custom.uniforms.light_path_samples = parameters['light_path_samples'];
 
-	requestAnimationFrame( animate );
-	renderer.render( scene, persp );
+	requestAnimationFrame(animate);
+	renderer.render(scene, persp);
 }
 
 function start_page(){
@@ -239,7 +275,7 @@ function start_page(){
 
 	const atmo_sphere_subdivision = 128;
 
-	const atmo_mesh = new THREE.SphereGeometry(parameters['planet_radius'] + 0.1, atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
+	const atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
 	const atmo_mat = new THREE.MeshPhysicalMaterial({
 		color: 0x888890, opacity: 0.5, transparent: true
 	})
@@ -249,7 +285,10 @@ function start_page(){
 		uniforms: {
 			obj_position: {value: new THREE.Vector3(0.0,0.0,0.0)},
 			sun_position: {value: new THREE.Vector3(dir_light.position.xyz)},
-			planet_radius: {value: parameters['planet_radius']}
+			planet_radius: {value: parameters['planet_radius']},
+			atmo_radius: {value: parameters['atmo_radius']},
+			view_path_samples: {value: parameters['view_path_samples']},
+			light_path_samples: {value: parameters['light_path_samples']}
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)
@@ -259,4 +298,4 @@ function start_page(){
 	animate();
 }
 
-//start_page();
+
