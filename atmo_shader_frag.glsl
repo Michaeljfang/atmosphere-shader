@@ -8,8 +8,8 @@ uniform float atmo_radius;
 const float gravitational_acceleration = 9.8e-6; // Mm/s2
 const float GAS_CONSTANT = 8.314e-6; // N*Mm/(mol*K)
 
-uniform int view_path_samples;
-uniform int light_path_samples;
+uniform float view_path_samples;
+uniform float light_path_samples;
 
 // // = camera.matrixWorldInverse * object.matrixWorld
 // in mat4 modelViewMatrix;
@@ -72,16 +72,30 @@ void main(){
 	float sea_level_density = 10.0;
 	float sea_level_temperature = 300.0;
 	float planet_mass = 60000.0;
+	float samples = 30.0;
 
 	// compute where starting and ending points are
 	float atmo_edge_x = sqrt(pow(atmo_radius, 2.0) - pow(frag_path_altitude, 2.0)); // closer to the camera - density calc "start"
-	float planet_edge_x = sqrt(pow(planet_radius, 2.0) - pow(frag_path_altitude, 2.0)); // farther to the camera - density calc "end"
-	float geometric_length = abs(atmo_edge_x-planet_edge_x); // debug test geometric length along view line
+	float planet_edge_x = sqrt(pow(planet_radius-0.005, 2.0) - pow(frag_path_altitude, 2.0)); // farther to the camera - density calc "end"
 
-	float density = density_curve(5.0, frag_path_altitude, sea_level_density, sea_level_temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
+	float far_side_x = max(planet_edge_x, -atmo_edge_x);
+	float near_side_x = atmo_edge_x;
+	float geometric_length = abs(near_side_x - far_side_x);
+
+	// integration for density
+	float accumulated_density = 0.0;
+	float step_x_size = (geometric_length / samples);
+	for (float i = 0.0; i <= samples; i+=1.0){
+		float step_x = far_side_x + i * step_x_size; 
+		accumulated_density = accumulated_density + step_x_size * density_curve(step_x, frag_path_altitude, sea_level_density, sea_level_temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
+	}
+	// compute opacity. supposedly it's an exponential relationship with density
+	float density_to_opacity_curve_power_base = 10.0;
+	float opacity_from_density = 1.0 - pow(density_to_opacity_curve_power_base, -accumulated_density/8.0);
 
 	//float planet_radius_cos = sqrt(pow(distance_to_obj, 2.0) - pow(planet_radius, 2.0)) / distance_to_obj;
 
 	//gl_FragColor = vec4(1.0, 1.0, 1.0, 0.4*(1.5-(1.0-frag_obj_angle_cos)/(1.0-planet_radius_cos)));
-	gl_FragColor = vec4(1.0, 1.0, 1.0, geometric_length/2.0);
+	gl_FragColor = vec4(0.82, 0.85, 1.0, opacity_from_density);
+	//gl_FragColor = vec4(0.82, 0.85, 1.0, density_curve(6.390, frag_path_altitude, sea_level_density, sea_level_temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT));
 }
