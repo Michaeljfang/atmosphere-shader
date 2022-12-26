@@ -4,6 +4,8 @@ in vec3 frag_position; // fragment world-space position
 uniform vec3 obj_position;
 uniform vec3 sun_position;
 uniform float planet_radius;
+uniform float planet_mass;
+
 uniform float atmo_radius;
 const float gravitational_acceleration = 9.8e-6; // Mm/s2
 const float GAS_CONSTANT = 8.314e-6; // N*Mm/(mol*K)
@@ -71,21 +73,18 @@ void main(){
 	// PLACEHOLDER variables
 	float sea_level_density = 10.0;
 	float sea_level_temperature = 300.0;
-	float planet_mass = 60000.0;
-	float samples = 30.0;
 
 	// compute where starting and ending points are
-	float atmo_edge_x = sqrt(pow(atmo_radius, 2.0) - pow(frag_path_altitude, 2.0)); // closer to the camera - density calc "start"
-	float planet_edge_x = sqrt(pow(planet_radius-0.005, 2.0) - pow(frag_path_altitude, 2.0)); // farther to the camera - density calc "end"
-
-	float far_side_x = max(planet_edge_x, -atmo_edge_x);
-	float near_side_x = atmo_edge_x;
+	float atmo_edge_x = sqrt(pow(atmo_radius, 2.0) - pow(frag_path_altitude, 2.0)); 
+	float planet_edge_x = sqrt(pow(planet_radius-0.005, 2.0) - pow(frag_path_altitude, 2.0));
+	float far_side_x = max(planet_edge_x, -atmo_edge_x); // farther to the camera - density calc "end"
+	float near_side_x = atmo_edge_x; // closer to the camera - density calc "start"
 	float geometric_length = abs(near_side_x - far_side_x);
 
 	// integration for density
 	float accumulated_density = 0.0;
-	float step_x_size = (geometric_length / samples);
-	for (float i = 0.0; i <= samples; i+=1.0){
+	float step_x_size = (geometric_length / view_path_samples);
+	for (float i = 0.0; i <= view_path_samples; i+=1.0){
 		float step_x = far_side_x + i * step_x_size; 
 		accumulated_density = accumulated_density + step_x_size * density_curve(step_x, frag_path_altitude, sea_level_density, sea_level_temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
 	}

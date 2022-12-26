@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta http-equiv="X-UA-Compatible">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="css/main.css"/>
-	<title>three js page</title>
+	<title>Create a planetary atmosphere</title>
 </head>
 <body>
+	<noscript id="noscript">
+			Please enable JavaScript for the 3D visuals.		
+	</noscript>
 	<div id="loading_screen">LOADING</div>
 	<canvas id="bg"></canvas>
 	<object id="frag" data="./atmo_shader_frag.glsl" type="text/plain"></object>
@@ -20,13 +23,19 @@
 	<div class="controls">
 		<div>
 			View path samples
-			<div id="view_path_samples_display">3</div>
-			<input type="range" min="3" max="20" value="5" class="slider" id="view_path_samples">
+			<div class="help_display" id="view_path_samples_display">500</div>
+			<div class="help_display" id="view_path_samples_advice">decent</div>
+			<input type="range" min="5" max="1500" step="5" value="500" class="slider" id="view_path_samples">
 		</div>
 		<div>
 			Light path samples
 			<div id="light_path_samples_display">3</div>
-			<input type="range" min="3" max="20" value="5" class="slider" id="light_path_samples">
+			<input type="range" min="5" max="1000" step="5" value="5" class="slider" id="light_path_samples">
+		</div>
+		<div>
+			Planet mass
+			<div id="planet_mass_display">60000</div>
+			<input type="number" min="100" max="100000" value="60000" id="planet_mass">
 		</div>
 	</div>
 
@@ -35,9 +44,7 @@
 		<br>
 		<span class="small_text">This site downloads the three.js library from Cloudflare CDNs</span>
 	</div>
-	<noscript>
-		Please enable JavaScript: it creates the 3D visuals.
-	</noscript>
+
 </body>
 </html>
 

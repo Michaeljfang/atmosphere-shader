@@ -4,6 +4,7 @@ out vec3 frag_position;
 uniform vec3 obj_position;
 uniform vec3 sun_position;
 uniform float planet_radius;
+uniform float planet_mass;
 uniform float atmo_radius;
 
 uniform float view_path_samples;

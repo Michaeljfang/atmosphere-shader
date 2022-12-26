@@ -13,6 +13,7 @@ file_loader.setResponseType("text");
 var planet;
 var atmo;
 var atmo_mat_custom;
+var input_delay_time;
 
 var y_rotation_speed = 0.005;
 
@@ -27,40 +28,11 @@ const resources_list = {
 const parameters = {
 	'planet_radius': 6.378,
 	'atmo_radius': 6.478,
-	'planet_density': 2,
+	'planet_mass': 60000,
 
-	'view_path_samples': 5,
-	'light_path_samples': 5
+	'view_path_samples': 20.0,
+	'light_path_samples': 20.0
 }
-
-
-// sliders
-// var view_path_samples_slider = document.getElementById("view_path_samples");
-// view_path_samples_slider.oninput = () => {
-// 	parameters['view_path_samples'] = view_path_samples_slider.value;
-// 	document.getElementById("view_path_samples_display").textContent = String(view_path_samples_slider.value);
-// }
-
-// const controls = ["view_path_samples", "light_path_samples"];
-// const numbers = [0,1];
-// var controls_html = [null, null];
-
-// for (var i=0; i<controls.length; i++){
-// 	controls_html[i] = document.getElementById(controls[i]);
-// 	controls_html[i].oninput = () => {
-// 		parameters[controls[i]] = controls_html[i].value;
-// 		document.getElementById(controls[i]+"_display").textContent = String(controls_html[i].value);
-// 	}
-// }
-
-var view_path_samples_slider = document.getElementById("view_path_samples");
-view_path_samples_slider.oninput = () => {parameters["view_path_samples"] = view_path_samples_slider.value;
-document.getElementById("view_path_samples_display").textContent = String(view_path_samples_slider.value);};
-
-var light_path_samples_slider = document.getElementById("light_path_samples");
-light_path_samples_slider.oninput = () => {parameters["light_path_samples"] = light_path_samples_slider.value;
-document.getElementById("light_path_samples_display").textContent = String(light_path_samples_slider.value);};
-
 
 
 const deg_to_rad = (deg) => (Math.PI/180) * deg;
@@ -69,6 +41,45 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild( renderer.domElement );
 persp.position.set(0,0,11);
+
+
+// sliders
+const controls = ["view_path_samples", "light_path_samples"];
+var controls_html = [null, null];
+
+controls.forEach((item, i) => {
+		controls_html[i] = document.getElementById(controls[i]);
+		controls_html[i].oninput = () => {
+			parameters[item] = controls_html[i].value;
+			document.getElementById(controls[i]+"_display").textContent = String(controls_html[i].value);
+		}
+	}
+)
+
+controls_html[0].addEventListener("input", () => {
+	if(controls_html[0].value < 50)document.getElementById("view_path_samples_advice").textContent = "inaccurate";
+	else if(controls_html[0].value < 200)document.getElementById("view_path_samples_advice").textContent = "okay";
+	else if(controls_html[0].value < 1000)document.getElementById("view_path_samples_advice").textContent = "decent";
+});
+
+
+
+document.getElementById("planet_mass").addEventListener("keyup", (e) => {
+	clearTimeout(input_delay_time);
+	input_delay_time = setTimeout(() => {
+		var mass = document.getElementById("planet_mass").value;
+		if (mass < 100 || mass > 100000){
+			document.getElementById("planet_mass").setCustomValidity("Mass out of range");
+		} else {
+			document.getElementById("planet_mass").setCustomValidity("");
+			parameters['planet_mass'] = mass;
+			document.getElementById("planet_mass_display").textContent = String(mass);
+		}
+	}, 750);
+})
+
+
+
 
 
 // DIRECTIONAL LIGHT
@@ -241,8 +252,9 @@ function animate() {
 	);
 	atmo_mat_custom.uniforms.planet_radius.value = parameters['planet_radius'];
 	atmo_mat_custom.uniforms.atmo_radius.value = parameters['atmo_radius'];
-	atmo_mat_custom.uniforms.view_path_samples = parameters['view_path_samples'];
-	atmo_mat_custom.uniforms.light_path_samples = parameters['light_path_samples'];
+	atmo_mat_custom.uniforms.view_path_samples.value = parameters['view_path_samples'];
+	atmo_mat_custom.uniforms.light_path_samples.value = parameters['light_path_samples'];
+	atmo_mat_custom.uniforms.planet_mass.value = parameters['planet_mass'];
 
 	requestAnimationFrame(animate);
 	renderer.render(scene, persp);
@@ -288,7 +300,8 @@ function start_page(){
 			planet_radius: {value: parameters['planet_radius']},
 			atmo_radius: {value: parameters['atmo_radius']},
 			view_path_samples: {value: parameters['view_path_samples']},
-			light_path_samples: {value: parameters['light_path_samples']}
+			light_path_samples: {value: parameters['light_path_samples']},
+			planet_mass: {value: parameters['planet_mass']}
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)
