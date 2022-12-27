@@ -7,9 +7,12 @@ canvas {
 body {
 	font-family: 'noto sans';
 	background-color: black;
+	color: white;
 	margin: 0;
 }
-
+a {
+	color: #aaaabb;
+}
 a:hover {
 	cursor: pointer;
 }
@@ -21,23 +24,54 @@ h1 {
 	margin-bottom: 5px;
 }
 
-.controls {
+button {
+	color: white;
+	background-color: #00000080;
+	border-style: solid;
+	border-radius: 7px;
+	padding: 5px;
+	transition: 30ms;
+	border-width: 2px;
+}
+button:hover {
+	background-color: #77777780;
+}
+button:active {
+	border-color: black;
+}
+input {
+	background-color: black;
+	color: white;
+	border-style: solid;
+	border-radius: 7px;
+	width: 100px;
+	padding: 5px;
+}
+input:invalid {
+	background-color: #a82727d3;
+}
+
+.controls_scrollbox {
+	margin: 2px;
+	position: fixed;
+	height: 600px;
 	margin: 20px;
 	padding: 20px;
 	width: 230px;
-	height: 400px;
-	position: fixed;
-	font-size: 20px;
-	color: white;
 	border-color: grey;
 	border-width: 1px;
 	border-radius: 7px;
 	background-color: #111111da;
 	border-style: solid;
-	z-index: 1;
+	z-index: 2;
 }
-.what {
-	background-color: green;
+
+.controls {
+	overflow: scroll;
+	height: 800px;
+	/* position: fixed; */
+	font-size: 20px;
+	color: white;
 	z-index: 1;
 }
 
@@ -57,13 +91,14 @@ h1 {
 	font-size: 11px;
 }
 
+.help_display {
+	font-size: 16px;
+	color: #ababab;
+}
+
 #loading_screen {
-	/* font-size: 100px;
+	font-size: 100px;
 	color: white;
-	background-color: black;
-	position: fixed;
-	margin-top: 20px;
-	margin-left: 50%; */
 	top: 0;
 	left: 0;
 	display: flex;
@@ -76,5 +111,18 @@ h1 {
 	align-content: center;
 	width: 100vw;
 	height: 100vh;
-	z-index: 1;
+	z-index: -1;
+}
+
+#noscript{
+	padding: 20px;
+	color: white;
+	background-color: black;
+	z-index: 10;
+	position: fixed;
+	font-size: 30px;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }

@@ -6,6 +6,7 @@ uniform vec3 sun_position;
 uniform float planet_radius;
 uniform float planet_mass;
 uniform float atmo_radius;
+uniform float temperature;
 
 uniform float view_path_samples;
 uniform float light_path_samples;

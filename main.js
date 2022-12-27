@@ -13,7 +13,7 @@ file_loader.setResponseType("text");
 var planet;
 var atmo;
 var atmo_mat_custom;
-var input_delay_time;
+var input_delay;
 
 var y_rotation_speed = 0.005;
 
@@ -31,7 +31,8 @@ const parameters = {
 	'planet_mass': 60000,
 
 	'view_path_samples': 20.0,
-	'light_path_samples': 20.0
+	'light_path_samples': 20.0,
+	'temperature': 300,
 }
 
 
@@ -42,45 +43,88 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild( renderer.domElement );
 persp.position.set(0,0,11);
 
-
+// loop set up and validate input fields.
 // sliders
-const controls = ["view_path_samples", "light_path_samples"];
-var controls_html = [null, null];
+const slider_controls = ["view_path_samples", "light_path_samples", "temperature"];
+var slider_controls_html = [null, null, null];
 
-controls.forEach((item, i) => {
-		controls_html[i] = document.getElementById(controls[i]);
-		controls_html[i].oninput = () => {
-			parameters[item] = controls_html[i].value;
-			document.getElementById(controls[i]+"_display").textContent = String(controls_html[i].value);
-		}
+slider_controls.forEach((item, i) => {
+	slider_controls_html[i] = document.getElementById(item);
+	slider_controls_html[i].oninput = () => {
+		parameters[item] = slider_controls_html[i].value;
+		document.getElementById(item+"_display").textContent = String(slider_controls_html[i].value);
 	}
-)
-
-controls_html[0].addEventListener("input", () => {
-	if(controls_html[0].value < 50)document.getElementById("view_path_samples_advice").textContent = "inaccurate";
-	else if(controls_html[0].value < 200)document.getElementById("view_path_samples_advice").textContent = "okay";
-	else if(controls_html[0].value < 1000)document.getElementById("view_path_samples_advice").textContent = "decent";
-});
-
-
-
-document.getElementById("planet_mass").addEventListener("keyup", (e) => {
-	clearTimeout(input_delay_time);
-	input_delay_time = setTimeout(() => {
-		var mass = document.getElementById("planet_mass").value;
-		if (mass < 100 || mass > 100000){
-			document.getElementById("planet_mass").setCustomValidity("Mass out of range");
-		} else {
-			document.getElementById("planet_mass").setCustomValidity("");
-			parameters['planet_mass'] = mass;
-			document.getElementById("planet_mass_display").textContent = String(mass);
-		}
-	}, 750);
 })
 
+slider_controls_html[0].addEventListener("input", () => {
+	if(slider_controls_html[0].value < 50)document.getElementById("view_path_samples_advice").textContent = "inaccurate";
+	else if(slider_controls_html[0].value < 200)document.getElementById("view_path_samples_advice").textContent = "okay";
+	else if(slider_controls_html[0].value < 1000)document.getElementById("view_path_samples_advice").textContent = "decent";
+});
 
+slider_controls_html[2].addEventListener("input", () => {
+	if(slider_controls_html[2].value < 273)document.getElementById("temperature_advice").textContent = "freezing";
+	else if(slider_controls_html[2].value < 310)document.getElementById("temperature_advice").textContent = "temperate";
+	else if(slider_controls_html[2].value < 323)document.getElementById("temperature_advice").textContent = "hot";
+	else if(slider_controls_html[2].value <= 700 && slider_controls_html[2].value > 550)document.getElementById("temperature_advice").textContent = "Mercury surface";
+	else if(slider_controls_html[2].value < 770 && slider_controls_html[2].value > 700)document.getElementById("temperature_advice").textContent = "Venus surface";
+	else document.getElementById("temperature_advice").textContent = "burning";
+});
 
+// number inputs
+const number_controls = {
+	"planet_radius": null,
+	"planet_mass": null
+};
+Object.keys(number_controls).forEach((item_name) => {
+	number_controls[item_name] = document.getElementById(item_name);
+})
+const number_controls_multiplier = {
+	"planet_radius": 0.001,
+	"planet_mass": 1
+}
+function validate_number_inputs(input_name, value){
+	// THIS WILL USE DISPLAYED VALUES,
+	// aka value displayed on the UI.
+	switch(input_name){
+		case "planet_radius": return (value >= 100 && value <= 10000);
+		case "planet_mass": return (value >= 100 && value <= 100000);
+		default: return false;
+	}
+}
+function respond_to_number_inputs(input_name, value){
+	// THIS WILL USED SCALED VALUES,
+	// aka the values saved to "parameters",
+	// aka the value passed to the shaders
+	switch(input_name){
+		case "planet_radius":
+			planet.scale.set(value, value, value);
+			return;
+		default:
+			return;
+	}
+}
 
+document.addEventListener("keyup", (e) => {
+	// TODO perhaps check if focus is in list of input widgets?
+	if(document.activeElement === document.body){return;}
+	clearTimeout(input_delay);
+	input_delay = setTimeout(() => {
+		// make every key-up in the target area a trigger to check input parameters
+		Object.keys(number_controls).forEach((item_name) => {
+			var html_element = document.getElementById(item_name);
+			if (validate_number_inputs(item_name, html_element.value)){
+				var scaled_input_value = html_element.value * number_controls_multiplier[item_name];
+				respond_to_number_inputs(item_name, scaled_input_value);
+				document.getElementById(item_name).setCustomValidity("");
+				parameters[item_name] = scaled_input_value;
+				document.getElementById(item_name+"_display").textContent = String(html_element.value);
+			} else {
+				document.getElementById(item_name).setCustomValidity(item_name + " out of range");
+			}
+		})
+	}, 500)
+})
 
 // DIRECTIONAL LIGHT
 
@@ -102,7 +146,7 @@ scene.add(ambient);
 
 
 // RESOURCES
-const planet_mesh = new THREE.SphereGeometry(parameters['planet_radius'], 128, 64);
+var planet_mesh = new THREE.SphereGeometry(1, 128, 64);
 const texture_loader = new THREE.TextureLoader();
 
 var earth_diffuse_tex;
@@ -113,6 +157,13 @@ var earth_roughness_tex;
 texture_loader.load('./tex/earth_land_tiny.jpg', (response) => {
 	earth_roughness_tex = response; resources_list["planet_ref"] = true; start_page();
 });
+
+const atmo_sphere_subdivision = 128;
+var atmo_scale = 6.478;
+const atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
+const atmo_mat = new THREE.MeshPhysicalMaterial({
+	color: 0x888890, opacity: 0.5, transparent: true
+})
 
 
 var atmo_shader_frag;
@@ -147,6 +198,7 @@ function light_rotation(key_code){
 
 document.addEventListener('keydown', event_handler, false);
 function event_handler(key) {
+	if(document.activeElement !== document.body){return;}
 	// console.log(key);
 	// camera controls
 	if (188 === key.keyCode && persp.position.z < 400){
@@ -226,6 +278,16 @@ function event_handler(key) {
 		atmo.position.z += 0.5;
 	}
 
+	// debug atmo scale
+	else if (key.keyCode == 49 && atmo_scale < 10){
+		atmo_scale -= 0.1;
+		atmo.scale.set(atmo_scale, atmo_scale, atmo_scale);
+		console.log(atmo_scale);
+	} else if (key.keyCode == 50 && atmo_scale > 1){
+		atmo_scale += 0.1;
+		atmo.scale.set(atmo_scale, atmo_scale, atmo_scale);
+		console.log(atmo_scale);
+	}
 
 	else {
 		console.log(key);
@@ -255,6 +317,7 @@ function animate() {
 	atmo_mat_custom.uniforms.view_path_samples.value = parameters['view_path_samples'];
 	atmo_mat_custom.uniforms.light_path_samples.value = parameters['light_path_samples'];
 	atmo_mat_custom.uniforms.planet_mass.value = parameters['planet_mass'];
+	atmo_mat_custom.uniforms.temperature.value = parameters['temperature'];
 
 	requestAnimationFrame(animate);
 	renderer.render(scene, persp);
@@ -283,14 +346,8 @@ function start_page(){
 	
 	planet = new THREE.Mesh(planet_mesh, earth_mat);
 	scene.add(planet);
+	planet.scale.set(parameters['planet_radius'], parameters['planet_radius'], parameters['planet_radius']);
 	planet.rotation.x = 0.8;
-
-	const atmo_sphere_subdivision = 128;
-
-	const atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
-	const atmo_mat = new THREE.MeshPhysicalMaterial({
-		color: 0x888890, opacity: 0.5, transparent: true
-	})
 
 	atmo_mat_custom = new THREE.ShaderMaterial({
 		fragmentShader: atmo_shader_frag, vertexShader: atmo_shader_vert, transparent: true, wireframe: false,
@@ -301,7 +358,8 @@ function start_page(){
 			atmo_radius: {value: parameters['atmo_radius']},
 			view_path_samples: {value: parameters['view_path_samples']},
 			light_path_samples: {value: parameters['light_path_samples']},
-			planet_mass: {value: parameters['planet_mass']}
+			planet_mass: {value: parameters['planet_mass']},
+			temperature: {value: parameters['temperature']}
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)

@@ -5,6 +5,7 @@ uniform vec3 obj_position;
 uniform vec3 sun_position;
 uniform float planet_radius;
 uniform float planet_mass;
+uniform float temperature;
 
 uniform float atmo_radius;
 const float gravitational_acceleration = 9.8e-6; // Mm/s2
@@ -35,13 +36,13 @@ vec3 project(vec3 from, vec3 onto){
 
 
 float density_curve(float queried_point, float ray_path_altitude,
-		float sea_level_density, float sea_level_temperature,
+		float sea_level_density, float temperature,
 		float planet_mass, float planet_radius,
 		float gravitational_acceleration, float gas_constant){
 	// gets density of atmosphere at some point along the view ray.
 	// use queried_point and ray_path_altitude to specify where the point is.
 	return sea_level_density * exp(
-		((-gravitational_acceleration * planet_mass) / (gas_constant * sea_level_temperature)) * // -gM/RT
+		((-gravitational_acceleration * planet_mass) / (gas_constant * temperature)) * // -gM/RT
 		(sqrt(pow(ray_path_altitude, 2.0) + pow(queried_point, 2.0)) - planet_radius) // sqrt(height - x^2) - h0
 	);
 }
@@ -72,21 +73,20 @@ void main(){
 
 	// PLACEHOLDER variables
 	float sea_level_density = 10.0;
-	float sea_level_temperature = 300.0;
 
-	// compute where starting and ending points are
+	// compute where starting and ending points are for integration
 	float atmo_edge_x = sqrt(pow(atmo_radius, 2.0) - pow(frag_path_altitude, 2.0)); 
 	float planet_edge_x = sqrt(pow(planet_radius-0.005, 2.0) - pow(frag_path_altitude, 2.0));
 	float far_side_x = max(planet_edge_x, -atmo_edge_x); // farther to the camera - density calc "end"
 	float near_side_x = atmo_edge_x; // closer to the camera - density calc "start"
 	float geometric_length = abs(near_side_x - far_side_x);
 
-	// integration for density
+	// numerical integration for density. no closed form solution :(
 	float accumulated_density = 0.0;
 	float step_x_size = (geometric_length / view_path_samples);
 	for (float i = 0.0; i <= view_path_samples; i+=1.0){
 		float step_x = far_side_x + i * step_x_size; 
-		accumulated_density = accumulated_density + step_x_size * density_curve(step_x, frag_path_altitude, sea_level_density, sea_level_temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
+		accumulated_density = accumulated_density + step_x_size * density_curve(step_x, frag_path_altitude, sea_level_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
 	}
 	// compute opacity. supposedly it's an exponential relationship with density
 	float density_to_opacity_curve_power_base = 10.0;
@@ -96,5 +96,5 @@ void main(){
 
 	//gl_FragColor = vec4(1.0, 1.0, 1.0, 0.4*(1.5-(1.0-frag_obj_angle_cos)/(1.0-planet_radius_cos)));
 	gl_FragColor = vec4(0.82, 0.85, 1.0, opacity_from_density);
-	//gl_FragColor = vec4(0.82, 0.85, 1.0, density_curve(6.390, frag_path_altitude, sea_level_density, sea_level_temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT));
+	//gl_FragColor = vec4(0.82, 0.85, 1.0, density_curve(6.390, frag_path_altitude, sea_level_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT));
 }
