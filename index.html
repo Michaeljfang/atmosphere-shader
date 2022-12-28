@@ -39,7 +39,7 @@
 					<div>
 						Surface air density (??)
 						<div class="help_display" id="surface_density_display">10</div>
-						<input type="range" min="1" max="200" step="1" value="10" class="slider" id="surface_density">
+						<input type="range" min="1" max="20" step="1" value="10" class="slider" id="surface_density">
 					</div>
 					<div>
 						Temperature (K)
@@ -57,14 +57,19 @@
 					<div class="error_message_lmao"></div>
 					<div>
 						View path samples
-						<div class="help_display" id="view_path_samples_display">500</div>
+						<div class="help_display" id="view_path_samples_display">210</div>
 						<div class="help_display" id="view_path_samples_advice">decent</div>
-						<input type="range" min="5" max="1500" step="5" value="500" class="slider" id="view_path_samples">
+						<input type="range" min="5" max="1500" step="5" value="210" class="slider" id="view_path_samples">
 					</div>
 					<div>
 						Light path samples
-						<div class="help_display" id="light_path_samples_display">3</div>
-						<input type="range" min="5" max="1000" step="5" value="5" class="slider" id="light_path_samples">
+						<div class="help_display" id="light_path_samples_display">5</div>
+						<input type="range" min="3" max="20" step="1" value="5" class="slider" id="light_path_samples">
+					</div>
+					<div>
+						Red light scatter exponential base
+						<div class="help_display" id="red_scatter_base_display">4.5</div>
+						<input type="range" min="1.01" max="20.0" step="0.01" value="4.5" class="slider" id="red_scatter_base">
 					</div>
 				</div>
 			</div>

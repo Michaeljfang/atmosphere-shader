@@ -8,6 +8,8 @@ uniform float planet_mass;
 uniform float atmo_radius;
 uniform float temperature;
 uniform float surface_density;
+uniform float red_scatter_base;
+
 
 uniform float view_path_samples;
 uniform float light_path_samples;

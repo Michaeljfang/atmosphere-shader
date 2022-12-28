@@ -5,8 +5,9 @@ uniform vec3 obj_position;
 uniform vec3 sun_position;
 uniform float planet_radius;
 uniform float planet_mass;
-uniform float temperature;
-uniform float surface_density;
+uniform float temperature; // temperature of atmosphere (assuming uniform temperature)
+uniform float surface_density; // density of atmosphere at the planet surface
+uniform float red_scatter_base; // exponential base to calculate remaining unscattered red light after some distance
 
 
 uniform float atmo_radius;
@@ -86,10 +87,6 @@ void main(){
 	// COLOR
 	vec3 light_direction = -normalize(sun_position);
 
-
-
-	float TEMP_L_PATH_SAPMLES = 10.0;
-
 	float total_accumulated_mass_along_the_light_paths = 0.0;
 
 	// numerical integration for density. no closed form solution :(
@@ -106,11 +103,10 @@ void main(){
 		// obj_to_x: x is the sample point along the view path.
 		vec3 obj_to_x = obj_to_closest_point + step_x * normalize(-cam_to_frag);
 		// light_path_x_vec is a vector parallel to the light path,
-		// but whose length gives the (absolute value of) x point along the light path instead of the view path.
-		// i.e. given the queried x point along the view path and the light path that intersects that point,
+		// given the queried x point along the view path and the light path that intersects that point,
 		// get the vector that goes from the light path's closest approach to the planet to that x point.
 		// this vector can give one end of the integration along the light path.
-		vec3 light_path_x_vec = project(obj_to_x, light_direction);
+		vec3 light_path_x_vec = project(obj_to_x, (light_direction)) + 1e-6; // add small number to avoid getting a zero vector
 		float light_path_x_on_view_path = length(light_path_x_vec) * dot(-light_direction, normalize(light_path_x_vec));
 		// this gets the other end of the integration along the light path.
 		vec3 obj_to_light_path_closest_approach = obj_to_x - light_path_x_vec;
@@ -119,27 +115,31 @@ void main(){
 		
 		// finally integrate over the light path from atmo edge to the x point.
 		float accumulated_mass_along_light_path = 0.0;
-		float step_x_size_light = ((light_path_x_on_atmo_edge - light_path_x_on_view_path) / TEMP_L_PATH_SAPMLES);
+		float step_x_size_light = ((light_path_x_on_atmo_edge - light_path_x_on_view_path) / light_path_samples);
 
-		for (float light_i = 0.0; light_i <= TEMP_L_PATH_SAPMLES; light_i+= 1.0){
+		for (float light_i = 0.0; light_i <= light_path_samples; light_i+= 1.0){
 			float step_x_light = light_path_x_on_view_path + light_i * step_x_size_light;
 			float queried_altitude_light = sqrt(pow(light_path_altitude, 2.0) + pow(step_x_light, 2.0));
 			float this_mass_light = step_x_size_light * density_curve(queried_altitude_light, surface_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
 			accumulated_mass_along_light_path += this_mass_light;
 		}
-		total_accumulated_mass_along_the_light_paths += accumulated_mass_along_light_path;
+		total_accumulated_mass_along_the_light_paths += this_mass * accumulated_mass_along_light_path;
 	
 	}
-	float light_traveled_distance = total_accumulated_mass_along_the_light_paths / view_path_samples;
+
 	// compute opacity. supposedly it's an exponential relationship with density
 	float mass_to_opacity_curve_power_base = 10.0;
 	float opacity_from_mass = 1.0 - pow(mass_to_opacity_curve_power_base, -accumulated_mass/8.0);
 
+	// compute colors.
+	float light_traveled_mass = total_accumulated_mass_along_the_light_paths / (geometric_length * 10.0);
+	vec3 atmospheric_color = vec3(0.70, 0.74, 1.0);
+	vec3 remaining_colors = atmospheric_color * vec3(
+		pow(red_scatter_base, -light_traveled_mass),
+		pow(red_scatter_base * pow(700.0/550.0, 4.0), -light_traveled_mass),
+		pow(red_scatter_base * pow(700.0/470.0, 4.0), -light_traveled_mass)
+	);
 	//float planet_radius_cos = sqrt(pow(distance_to_obj, 2.0) - pow(planet_radius, 2.0)) / distance_to_obj;
 	gl_FragColor = vec4(0.82, 0.85, 1.0, opacity_from_mass);
-	gl_FragColor = vec4(
-		1.0-pow(light_traveled_distance - 2.0, 2.0),
-		1.0-pow(light_traveled_distance - 1.0, 2.0),
-		0.7 * (1.0-pow(light_traveled_distance - 0.1, 2.0)),
-		opacity_from_mass);
+	gl_FragColor = vec4(remaining_colors, opacity_from_mass);
 }

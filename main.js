@@ -30,10 +30,12 @@ const parameters = {
 	'atmo_radius': 6.478,
 	'planet_mass': 60000,
 
-	'view_path_samples': 20.0,
-	'light_path_samples': 20.0,
+	'view_path_samples': 210.0,
+	'light_path_samples': 5.0,
 	'temperature': 300,
 	'surface_density': 10,
+
+	'red_scatter_base': 4.5,
 }
 
 
@@ -46,8 +48,8 @@ persp.position.set(0,0,11);
 
 // loop set up and validate input fields.
 // sliders
-const slider_controls = ["view_path_samples", "light_path_samples", "temperature", "surface_density"];
-var slider_controls_html = [null, null, null, null];
+const slider_controls = ["view_path_samples", "light_path_samples", "temperature", "surface_density", "red_scatter_base"];
+var slider_controls_html = [null, null, null, null, null];
 
 slider_controls.forEach((item, i) => {
 	slider_controls_html[i] = document.getElementById(item);
@@ -326,6 +328,7 @@ function animate() {
 	atmo_mat_custom.uniforms.planet_mass.value = parameters['planet_mass'];
 	atmo_mat_custom.uniforms.temperature.value = parameters['temperature'];
 	atmo_mat_custom.uniforms.surface_density.value = parameters['surface_density'];
+	atmo_mat_custom.uniforms.red_scatter_base.value = parameters['red_scatter_base'];
 
 	requestAnimationFrame(animate);
 	renderer.render(scene, persp);
@@ -368,7 +371,8 @@ function start_page(){
 			light_path_samples: {value: parameters['light_path_samples']},
 			planet_mass: {value: parameters['planet_mass']},
 			temperature: {value: parameters['temperature']},
-			surface_density: {value: parameters['surface_density']}
+			surface_density: {value: parameters['surface_density']},
+			red_scatter_base: {value: parameters['red_scatter_base']}
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)
