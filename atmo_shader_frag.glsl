@@ -6,6 +6,8 @@ uniform vec3 sun_position;
 uniform float planet_radius;
 uniform float planet_mass;
 uniform float temperature;
+uniform float surface_density;
+
 
 uniform float atmo_radius;
 const float gravitational_acceleration = 9.8e-6; // Mm/s2
@@ -35,15 +37,16 @@ vec3 project(vec3 from, vec3 onto){
 }
 
 
-float density_curve(float queried_point, float ray_path_altitude,
-		float sea_level_density, float temperature,
+float density_curve(float queried_altitude,
+		float surface_density, float temperature,
 		float planet_mass, float planet_radius,
-		float gravitational_acceleration, float gas_constant){
+		float gravitational_acceleration, float gas_constant
+		){
 	// gets density of atmosphere at some point along the view ray.
 	// use queried_point and ray_path_altitude to specify where the point is.
-	return sea_level_density * exp(
+	return surface_density * exp(
 		((-gravitational_acceleration * planet_mass) / (gas_constant * temperature)) * // -gM/RT
-		(sqrt(pow(ray_path_altitude, 2.0) + pow(queried_point, 2.0)) - planet_radius) // sqrt(height - x^2) - h0
+		(queried_altitude - planet_radius) // sqrt(height - x^2) - h0
 	);
 }
 
@@ -63,38 +66,80 @@ void main(){
 	// computed variables
 	float distance_to_obj = length(cam_to_obj);
 	vec3 vec_to_closest_point = project(cam_to_obj, cam_to_frag);
+	vec3 obj_to_closest_point = vec_to_closest_point - cam_to_obj;
 
 	// closest distance between view path of frag and obj
 	// two ways to get this:
 	//float frag_path_altitude = distance_to_obj * sqrt(1.0 - pow(frag_obj_angle_cos, 2.0));
-	float frag_path_altitude = length(cam_to_obj - vec_to_closest_point);
-	
+	float frag_path_altitude = length(obj_to_closest_point);
+
 	float atmo_top_distance = length(cam_to_frag); // distance to frag, or distance to top of atmosphere at frag.
 
-	// PLACEHOLDER variables
-	float sea_level_density = 10.0;
-
+	// OPACITY
 	// compute where starting and ending points are for integration
-	float atmo_edge_x = sqrt(pow(atmo_radius, 2.0) - pow(frag_path_altitude, 2.0)); 
+	float atmo_edge_x = sqrt(pow(atmo_radius, 2.0) - pow(frag_path_altitude, 2.0)); // always positive, aka the closer side
 	float planet_edge_x = sqrt(pow(planet_radius-0.005, 2.0) - pow(frag_path_altitude, 2.0));
 	float far_side_x = max(planet_edge_x, -atmo_edge_x); // farther to the camera - density calc "end"
 	float near_side_x = atmo_edge_x; // closer to the camera - density calc "start"
 	float geometric_length = abs(near_side_x - far_side_x);
 
+	// COLOR
+	vec3 light_direction = -normalize(sun_position);
+
+
+
+	float TEMP_L_PATH_SAPMLES = 10.0;
+
+	float total_accumulated_mass_along_the_light_paths = 0.0;
+
 	// numerical integration for density. no closed form solution :(
-	float accumulated_density = 0.0;
+	float accumulated_mass = 0.0;
 	float step_x_size = (geometric_length / view_path_samples);
 	for (float i = 0.0; i <= view_path_samples; i+=1.0){
-		float step_x = far_side_x + i * step_x_size; 
-		accumulated_density = accumulated_density + step_x_size * density_curve(step_x, frag_path_altitude, sea_level_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
+		// OPACITY
+		float step_x = far_side_x + i * step_x_size;
+		float queried_altitude = sqrt(pow(frag_path_altitude, 2.0) + pow(step_x, 2.0));
+		// mass at the query point multiplied by step size
+		float this_mass = step_x_size * density_curve(queried_altitude, surface_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
+		accumulated_mass += this_mass;
+		// COLOR
+		// obj_to_x: x is the sample point along the view path.
+		vec3 obj_to_x = obj_to_closest_point + step_x * normalize(-cam_to_frag);
+		// light_path_x_vec is a vector parallel to the light path,
+		// but whose length gives the (absolute value of) x point along the light path instead of the view path.
+		// i.e. given the queried x point along the view path and the light path that intersects that point,
+		// get the vector that goes from the light path's closest approach to the planet to that x point.
+		// this vector can give one end of the integration along the light path.
+		vec3 light_path_x_vec = project(obj_to_x, light_direction);
+		float light_path_x_on_view_path = length(light_path_x_vec) * dot(-light_direction, normalize(light_path_x_vec));
+		// this gets the other end of the integration along the light path.
+		vec3 obj_to_light_path_closest_approach = obj_to_x - light_path_x_vec;
+		float light_path_altitude = length(obj_to_light_path_closest_approach);
+		float light_path_x_on_atmo_edge = sqrt(pow(atmo_radius, 2.0) - pow(light_path_altitude, 2.0));
+		
+		// finally integrate over the light path from atmo edge to the x point.
+		float accumulated_mass_along_light_path = 0.0;
+		float step_x_size_light = ((light_path_x_on_atmo_edge - light_path_x_on_view_path) / TEMP_L_PATH_SAPMLES);
+
+		for (float light_i = 0.0; light_i <= TEMP_L_PATH_SAPMLES; light_i+= 1.0){
+			float step_x_light = light_path_x_on_view_path + light_i * step_x_size_light;
+			float queried_altitude_light = sqrt(pow(light_path_altitude, 2.0) + pow(step_x_light, 2.0));
+			float this_mass_light = step_x_size_light * density_curve(queried_altitude_light, surface_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
+			accumulated_mass_along_light_path += this_mass_light;
+		}
+		total_accumulated_mass_along_the_light_paths += accumulated_mass_along_light_path;
+	
 	}
+	float light_traveled_distance = total_accumulated_mass_along_the_light_paths / view_path_samples;
 	// compute opacity. supposedly it's an exponential relationship with density
-	float density_to_opacity_curve_power_base = 10.0;
-	float opacity_from_density = 1.0 - pow(density_to_opacity_curve_power_base, -accumulated_density/8.0);
+	float mass_to_opacity_curve_power_base = 10.0;
+	float opacity_from_mass = 1.0 - pow(mass_to_opacity_curve_power_base, -accumulated_mass/8.0);
 
 	//float planet_radius_cos = sqrt(pow(distance_to_obj, 2.0) - pow(planet_radius, 2.0)) / distance_to_obj;
-
-	//gl_FragColor = vec4(1.0, 1.0, 1.0, 0.4*(1.5-(1.0-frag_obj_angle_cos)/(1.0-planet_radius_cos)));
-	gl_FragColor = vec4(0.82, 0.85, 1.0, opacity_from_density);
-	//gl_FragColor = vec4(0.82, 0.85, 1.0, density_curve(6.390, frag_path_altitude, sea_level_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT));
+	gl_FragColor = vec4(0.82, 0.85, 1.0, opacity_from_mass);
+	gl_FragColor = vec4(
+		1.0-pow(light_traveled_distance - 2.0, 2.0),
+		1.0-pow(light_traveled_distance - 1.0, 2.0),
+		0.7 * (1.0-pow(light_traveled_distance - 0.1, 2.0)),
+		opacity_from_mass);
 }

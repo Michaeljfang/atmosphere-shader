@@ -33,6 +33,7 @@ const parameters = {
 	'view_path_samples': 20.0,
 	'light_path_samples': 20.0,
 	'temperature': 300,
+	'surface_density': 10,
 }
 
 
@@ -45,8 +46,8 @@ persp.position.set(0,0,11);
 
 // loop set up and validate input fields.
 // sliders
-const slider_controls = ["view_path_samples", "light_path_samples", "temperature"];
-var slider_controls_html = [null, null, null];
+const slider_controls = ["view_path_samples", "light_path_samples", "temperature", "surface_density"];
+var slider_controls_html = [null, null, null, null];
 
 slider_controls.forEach((item, i) => {
 	slider_controls_html[i] = document.getElementById(item);
@@ -200,19 +201,25 @@ document.addEventListener('keydown', event_handler, false);
 function event_handler(key) {
 	if(document.activeElement !== document.body){return;}
 	// console.log(key);
-	// camera controls
+	// camera/planet position
 	if (188 === key.keyCode && persp.position.z < 400){
-		persp.position.z *= 1.05;
+		if (key.shiftKey){planet.position.z *= 1.05;}
+		else {persp.position.z *= 1.05;}
 	} else if (190 === key.keyCode && persp.position.z > 6.5){
-		persp.position.z /= 1.05;
+		if (key.shiftKey){planet.position.z /= 1.05;}
+		else {persp.position.z /= 1.05;}
 	} else if (65 === key.keyCode && persp.position.x > -2) {
-		persp.position.x -= 0.1;
+		if (key.shiftKey){planet.position.x -= 0.1;}
+		else {persp.position.x -= 0.1;}
 	} else if (68 === key.keyCode && persp.position.x < 2) {
-		persp.position.x += 0.1;
+		if (key.shiftKey){planet.position.x += 0.1;}
+		else {persp.position.x += 0.1;}
 	} else if (83 === key.keyCode && persp.position.y > -1) {
-		persp.position.y -= 0.1;
+		if (key.shiftKey){planet.position.y -= 0.1;}
+		else {persp.position.y -= 0.1;}
 	} else if (87 === key.keyCode && persp.position.y < 1) {
-		persp.position.y += 0.1;
+		if (key.shiftKey){planet.position.y += 0.1;}
+		else {persp.position.y += 0.1;}
 	}
 	
 	else if (key.keyCode == 173 && persp.fov < 175){
@@ -318,6 +325,7 @@ function animate() {
 	atmo_mat_custom.uniforms.light_path_samples.value = parameters['light_path_samples'];
 	atmo_mat_custom.uniforms.planet_mass.value = parameters['planet_mass'];
 	atmo_mat_custom.uniforms.temperature.value = parameters['temperature'];
+	atmo_mat_custom.uniforms.surface_density.value = parameters['surface_density'];
 
 	requestAnimationFrame(animate);
 	renderer.render(scene, persp);
@@ -359,7 +367,8 @@ function start_page(){
 			view_path_samples: {value: parameters['view_path_samples']},
 			light_path_samples: {value: parameters['light_path_samples']},
 			planet_mass: {value: parameters['planet_mass']},
-			temperature: {value: parameters['temperature']}
+			temperature: {value: parameters['temperature']},
+			surface_density: {value: parameters['surface_density']}
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)

@@ -20,39 +20,56 @@
 	<script type="module" src="./main.js"></script>
 
 	<h1>Create a planetary atmosphere</h1>
-	<div class="controls_scrollbox">
-		<div class="controls">
-			<div class="error_message_lmao"></div>
-			<div>
-				View path samples
-				<div class="help_display" id="view_path_samples_display">500</div>
-				<div class="help_display" id="view_path_samples_advice">decent</div>
-				<input type="range" min="5" max="1500" step="5" value="500" class="slider" id="view_path_samples">
+	<div id="main_page">
+		<div class="controls_frame" id="atmo_params">
+			<h2>Atmosphere parameters</h2>
+			<div class="controls_scrollbox">
+				<div class="controls">
+					<div class="error_message_lmao"></div>
+					<div>
+						Planet radius (km)
+						<div class="help_display" id="planet_radius_display">6378</div>
+						<input type="number" min="100" max="10000" step="1" value="6378" id="planet_radius">
+					</div>
+					<div>
+						Planet mass (10<sup>20</sup>kg)
+						<div class="help_display" id="planet_mass_display">59700</div>
+						<input type="number" min="100" max="100000" value="59700" step="100" id="planet_mass">
+					</div>
+					<div>
+						Surface air density (??)
+						<div class="help_display" id="surface_density_display">10</div>
+						<input type="range" min="1" max="200" step="1" value="10" class="slider" id="surface_density">
+					</div>
+					<div>
+						Temperature (K)
+						<div class="help_display" id="temperature_display">300</div>
+						<div class="help_display" id="temperature_advice">temperate</div>
+						<input type="range" min="200" max="750" step="10" value="300" class="slider" id="temperature">
+					</div>
+				</div>
 			</div>
-			<div>
-				Light path samples
-				<div class="help_display" id="light_path_samples_display">3</div>
-				<input type="range" min="5" max="1000" step="5" value="5" class="slider" id="light_path_samples">
-			</div>
-			<div>
-				Planet radius (km)
-				<div class="help_display" id="planet_radius_display">6378</div>
-				<input type="number" min="100" max="10000" step="1" value="6378" id="planet_radius">
-			</div>
-			<div>
-				Planet mass (10<sup>20</sup>kg)
-				<div class="help_display" id="planet_mass_display">59700</div>
-				<input type="number" min="100" max="100000" value="59700" step="100" id="planet_mass">
-			</div>
-			<div>
-				Temperature (K)
-				<div class="help_display" id="temperature_display">300</div>
-				<div class="help_display" id="temperature_advice">temperate</div>
-				<input type="range" min="200" max="750" step="10" value="300" class="slider" id="temperature">
+		</div>
+		<div class="controls_frame" id="render_params">
+			<h2>Rendering options</h2>
+			<div class="controls_scrollbox">
+				<div class="controls">
+					<div class="error_message_lmao"></div>
+					<div>
+						View path samples
+						<div class="help_display" id="view_path_samples_display">500</div>
+						<div class="help_display" id="view_path_samples_advice">decent</div>
+						<input type="range" min="5" max="1500" step="5" value="500" class="slider" id="view_path_samples">
+					</div>
+					<div>
+						Light path samples
+						<div class="help_display" id="light_path_samples_display">3</div>
+						<input type="range" min="5" max="1000" step="5" value="5" class="slider" id="light_path_samples">
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
-
 	<div class="info_pane">
 		<a href="https://www.github.com/michaeljfang/create-atmosphere">Source code</a>
 		<br>

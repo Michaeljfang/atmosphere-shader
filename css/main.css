@@ -20,8 +20,23 @@ a:hover {
 h1 {
 	color: #999999;
 	font-weight: 500;
+	top: 0;
 	margin-left: 20px;
 	margin-bottom: 5px;
+	position:fixed;
+}
+
+h2 {
+	font-weight: 500;
+	font-size: 17px;
+	margin-top: 0;
+	margin-left: 0;
+	margin-bottom: 0;
+	padding-bottom: 5px;
+	margin-right: 0;
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: grey;
 }
 
 button {
@@ -40,7 +55,7 @@ button:active {
 	border-color: black;
 }
 input {
-	background-color: black;
+	background-color: #00000000;
 	color: white;
 	border-style: solid;
 	border-radius: 7px;
@@ -48,32 +63,69 @@ input {
 	padding: 5px;
 }
 input:invalid {
-	background-color: #a82727d3;
+	background-color: #a8272799;
 }
 
-.controls_scrollbox {
+input[type="range"] {
+	width: 170px
+}
+
+.controls_frame {
 	margin: 2px;
-	position: fixed;
-	height: 600px;
 	margin: 20px;
-	padding: 20px;
-	width: 230px;
+	padding: 14px;
+	width: 220px;
 	border-color: grey;
 	border-width: 1px;
 	border-radius: 7px;
-	background-color: #111111da;
+	background-color: #11111100;
 	border-style: solid;
-	z-index: 2;
+	z-index: 1;
+	transition: 100ms;
+	overflow: hidden;
+	/* transition-delay: 500ms; */
+}
+
+.controls_scrollbox {
+	overflow: scroll;
+	height: inherit;
 }
 
 .controls {
-	overflow: scroll;
-	height: 800px;
+	/* overflow: auto; */
+	/* height: 800px; */
 	/* position: fixed; */
-	font-size: 20px;
+	padding-bottom: 20px;
+	font-size: 17px;
 	color: white;
 	z-index: 1;
 }
+
+.controls_frame:hover, :focus {
+	background-color: #111111da;
+	transition-delay: 0s;
+}
+
+#atmo_params {
+	/* position: fixed; */
+	height: 35vh;
+	margin-top: 70px;
+}
+/* #atmo_params:hover{
+	height: 80vh;
+	z-index: 2;
+} */
+
+#render_params {
+	/* position: fixed; */
+	bottom:0;
+	height: 35vh;
+}
+/* #render_params:hover{
+	height: 80vh;
+	z-index: 2;
+} */
+
 
 .info_pane {
 	position: fixed;
@@ -94,6 +146,9 @@ input:invalid {
 .help_display {
 	font-size: 16px;
 	color: #ababab;
+}
+#main_page {
+	position:fixed;
 }
 
 #loading_screen {
