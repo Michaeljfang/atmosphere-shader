@@ -38,6 +38,13 @@ const parameters = {
 	'red_scatter_base': 4.5,
 }
 
+function polar_to_cartesian(radius, longitude, latitude){
+	return [
+		radius * Math.cos(deg_to_rad(latitude)) * Math.sin(deg_to_rad(longitude)),
+		radius * Math.sin(deg_to_rad(latitude)),
+		radius * Math.cos(deg_to_rad(latitude)) * Math.cos(deg_to_rad(longitude))
+	];
+}
 
 const deg_to_rad = (deg) => (Math.PI/180) * deg;
 
@@ -62,7 +69,8 @@ slider_controls.forEach((item, i) => {
 slider_controls_html[0].addEventListener("input", () => {
 	if(slider_controls_html[0].value < 50)document.getElementById("view_path_samples_advice").textContent = "inaccurate";
 	else if(slider_controls_html[0].value < 200)document.getElementById("view_path_samples_advice").textContent = "okay";
-	else if(slider_controls_html[0].value < 1000)document.getElementById("view_path_samples_advice").textContent = "decent";
+	else if(slider_controls_html[0].value < 750)document.getElementById("view_path_samples_advice").textContent = "decent";
+	else if(slider_controls_html[0].value < 1000)document.getElementById("view_path_samples_advice").textContent = "GPU on fire";
 });
 
 slider_controls_html[2].addEventListener("input", () => {
@@ -102,6 +110,13 @@ function respond_to_number_inputs(input_name, value){
 	switch(input_name){
 		case "planet_radius":
 			planet.scale.set(value, value, value);
+			atmo_mesh.dispose();
+			parameters['atmo_radius'] = value + 1;
+			atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
+			scene.remove(atmo);
+			//atmo = new THREE.Mesh(atmo_mesh, new THREE.MeshBasicMaterial());
+			atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom);
+			scene.add(atmo);
 			return;
 		default:
 			return;
@@ -133,7 +148,7 @@ document.addEventListener("keyup", (e) => {
 
 var light_direction = [45, 30];
 var light_distance = 20;
-const dir_light = new THREE.DirectionalLight( 0xffffff,  1);
+const dir_light = new THREE.DirectionalLight(0xffffff,  1);
 
 dir_light.position.set(
 	light_distance * Math.cos(deg_to_rad(light_direction[1])) * Math.sin(deg_to_rad(light_direction[0])),
@@ -162,8 +177,7 @@ texture_loader.load('./tex/earth_land_tiny.jpg', (response) => {
 });
 
 const atmo_sphere_subdivision = 128;
-var atmo_scale = 6.478;
-const atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
+var atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
 const atmo_mat = new THREE.MeshPhysicalMaterial({
 	color: 0x888890, opacity: 0.5, transparent: true
 })
@@ -178,8 +192,8 @@ file_loader.load("./atmo_shader_vert.glsl", (response) => {
 	atmo_shader_vert = response; resources_list['atmo_vert'] = true; start_page();
 });
 
+
 function light_rotation(key_code){
-	light_direction;
 	
 	if (key_code == 37){light_direction[0] += 5;}
 	else if (key_code == 39){light_direction[0] -= 5;}
@@ -191,11 +205,9 @@ function light_rotation(key_code){
 	else if (light_direction[0] < 0){light_direction[0] += 360;}
 	light_direction[1] = Math.min(Math.max(light_direction[1], -90), 90);
 
-	dir_light.position.set(
-		light_distance * Math.cos(deg_to_rad(light_direction[1])) * Math.sin(deg_to_rad(light_direction[0])),
-		light_distance * Math.sin(deg_to_rad(light_direction[1])),
-		light_distance * Math.cos(deg_to_rad(light_direction[1])) * Math.cos(deg_to_rad(light_direction[0]))
-	);
+	var light_position = polar_to_cartesian(light_distance, light_direction[0], light_direction[1]);
+
+	dir_light.position.set(light_position[0], light_position[1], light_position[2]);
 }
 
 
@@ -207,7 +219,7 @@ function event_handler(key) {
 	if (188 === key.keyCode && persp.position.z < 400){
 		if (key.shiftKey){planet.position.z *= 1.05;}
 		else {persp.position.z *= 1.05;}
-	} else if (190 === key.keyCode && persp.position.z > 6.5){
+	} else if (190 === key.keyCode && persp.position.z > 0.4 + parameters['planet_radius']){
 		if (key.shiftKey){planet.position.z /= 1.05;}
 		else {persp.position.z /= 1.05;}
 	} else if (65 === key.keyCode && persp.position.x > -2) {
@@ -287,16 +299,6 @@ function event_handler(key) {
 		atmo.position.z += 0.5;
 	}
 
-	// debug atmo scale
-	else if (key.keyCode == 49 && atmo_scale < 10){
-		atmo_scale -= 0.1;
-		atmo.scale.set(atmo_scale, atmo_scale, atmo_scale);
-		console.log(atmo_scale);
-	} else if (key.keyCode == 50 && atmo_scale > 1){
-		atmo_scale += 0.1;
-		atmo.scale.set(atmo_scale, atmo_scale, atmo_scale);
-		console.log(atmo_scale);
-	}
 
 	else {
 		console.log(key);
