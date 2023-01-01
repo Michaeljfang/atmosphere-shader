@@ -1,3 +1,4 @@
+import * as physics_utils from "./physics_utils.js";
 const scene = new THREE.Scene();
 const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 2000);
 // FOV, aspect ratio, near clip, far clip
@@ -23,6 +24,8 @@ const resources_list = {
 	//"planet_bmp": false,
 	"atmo_frag": false,
 	"atmo_vert": false,
+	"planet_frag": false,
+	"planet_vert": false,
 }
 
 const parameters = {
@@ -36,6 +39,12 @@ const parameters = {
 	'surface_density': 10,
 
 	'red_scatter_base': 4.5,
+
+	'atmo_color_R': 1,
+	'atmo_color_G': 1,
+	'atmo_color_B': 1,
+	
+	'star_temp': 5400,
 }
 
 function polar_to_cartesian(radius, longitude, latitude){
@@ -55,32 +64,44 @@ persp.position.set(0,0,11);
 
 // loop set up and validate input fields.
 // sliders
-const slider_controls = ["view_path_samples", "light_path_samples", "temperature", "surface_density", "red_scatter_base"];
-var slider_controls_html = [null, null, null, null, null];
+const slider_controls = {
+	"view_path_samples": null, "light_path_samples": null, "temperature": null, "surface_density": null, "red_scatter_base": null,
+	"atmo_color_R": null, "atmo_color_G": null, "atmo_color_B": null,
+	"star_temp": null, 
+};
 
-slider_controls.forEach((item, i) => {
-	slider_controls_html[i] = document.getElementById(item);
-	slider_controls_html[i].oninput = () => {
-		parameters[item] = slider_controls_html[i].value;
-		document.getElementById(item+"_display").textContent = String(slider_controls_html[i].value);
+Object.keys(slider_controls).forEach((item_name) => {
+	slider_controls[item_name] = document.getElementById(item_name);
+	slider_controls[item_name].oninput = () => {
+		parameters[item_name] = slider_controls[item_name].value;
+		document.getElementById(item_name+"_display").textContent = String(slider_controls[item_name].value);
 	}
-})
-
-slider_controls_html[0].addEventListener("input", () => {
-	if(slider_controls_html[0].value < 50)document.getElementById("view_path_samples_advice").textContent = "inaccurate";
-	else if(slider_controls_html[0].value < 200)document.getElementById("view_path_samples_advice").textContent = "okay";
-	else if(slider_controls_html[0].value < 750)document.getElementById("view_path_samples_advice").textContent = "decent";
-	else if(slider_controls_html[0].value < 1000)document.getElementById("view_path_samples_advice").textContent = "GPU on fire";
 });
 
-slider_controls_html[2].addEventListener("input", () => {
-	if(slider_controls_html[2].value < 273)document.getElementById("temperature_advice").textContent = "freezing";
-	else if(slider_controls_html[2].value < 310)document.getElementById("temperature_advice").textContent = "temperate";
-	else if(slider_controls_html[2].value < 323)document.getElementById("temperature_advice").textContent = "hot";
-	else if(slider_controls_html[2].value <= 700 && slider_controls_html[2].value > 550)document.getElementById("temperature_advice").textContent = "Mercury surface";
-	else if(slider_controls_html[2].value < 770 && slider_controls_html[2].value > 700)document.getElementById("temperature_advice").textContent = "Venus surface";
+
+slider_controls["view_path_samples"].addEventListener("input", () => {
+	if(slider_controls["view_path_samples"].value < 50)document.getElementById("view_path_samples_advice").textContent = "inaccurate";
+	else if(slider_controls["view_path_samples"].value < 200)document.getElementById("view_path_samples_advice").textContent = "okay";
+	else if(slider_controls["view_path_samples"].value < 750)document.getElementById("view_path_samples_advice").textContent = "decent";
+	else if(slider_controls["view_path_samples"].value < 1000)document.getElementById("view_path_samples_advice").textContent = "GPU on fire";
+});
+
+slider_controls["temperature"].addEventListener("input", () => {
+	if(slider_controls["temperature"].value < 273)document.getElementById("temperature_advice").textContent = "freezing";
+	else if(slider_controls["temperature"].value < 310)document.getElementById("temperature_advice").textContent = "temperate";
+	else if(slider_controls["temperature"].value < 323)document.getElementById("temperature_advice").textContent = "hot";
+	else if(slider_controls["temperature"].value <= 700 && slider_controls["temperature"].value > 550)document.getElementById("temperature_advice").textContent = "Mercury surface";
+	else if(slider_controls["temperature"].value < 770 && slider_controls["temperature"].value > 700)document.getElementById("temperature_advice").textContent = "Venus surface";
 	else document.getElementById("temperature_advice").textContent = "burning";
 });
+
+slider_controls["star_temp"].addEventListener("input", () => {
+	document.getElementById("star_temp_display_block").innerHTML = "█".fontcolor(
+		physics_utils.wavelength_to_rgb(
+			physics_utils.temperature_to_wavelength(parameters['star_temp'])
+		)
+	);
+})
 
 // number inputs
 const number_controls = {
@@ -181,6 +202,15 @@ var atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_
 const atmo_mat = new THREE.MeshPhysicalMaterial({
 	color: 0x888890, opacity: 0.5, transparent: true
 })
+
+var planet_shader_frag;
+file_loader.load("./planet_shader_frag.glsl", (response) => {
+	planet_shader_frag = response; resources_list['planet_frag'] = true; start_page();
+});
+var atmo_shader_vert;
+file_loader.load("./planet_shader_vert.glsl", (response) => {
+	atmo_shader_vert = response; resources_list['planet_vert'] = true; start_page();
+});
 
 
 var atmo_shader_frag;
@@ -331,6 +361,7 @@ function animate() {
 	atmo_mat_custom.uniforms.temperature.value = parameters['temperature'];
 	atmo_mat_custom.uniforms.surface_density.value = parameters['surface_density'];
 	atmo_mat_custom.uniforms.red_scatter_base.value = parameters['red_scatter_base'];
+	atmo_mat_custom.uniforms.star_colors.value = new THREE.Vector3(parameters['atmo_color_R'], parameters['atmo_color_G'], parameters['atmo_color_B']);
 
 	requestAnimationFrame(animate);
 	renderer.render(scene, persp);
@@ -374,7 +405,9 @@ function start_page(){
 			planet_mass: {value: parameters['planet_mass']},
 			temperature: {value: parameters['temperature']},
 			surface_density: {value: parameters['surface_density']},
-			red_scatter_base: {value: parameters['red_scatter_base']}
+			red_scatter_base: {value: parameters['red_scatter_base']},
+
+			star_colors: {value: new THREE.Vector3(parameters['atmo_color_R'], parameters['atmo_color_G'], parameters['atmo_color_B'])},
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)

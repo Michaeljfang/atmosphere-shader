@@ -10,6 +10,7 @@ uniform float temperature;
 uniform float surface_density;
 uniform float red_scatter_base;
 
+uniform vec3 star_colors;
 
 uniform float view_path_samples;
 uniform float light_path_samples;

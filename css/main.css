@@ -70,6 +70,15 @@ input[type="range"] {
 	width: 170px
 }
 
+input[class^=color] {
+	width: 50px;
+}
+
+.color_slider_group {
+	width: 10px;
+	display: flex;
+}
+
 .controls_frame {
 	margin: 2px;
 	margin: 20px;
@@ -144,7 +153,7 @@ input[type="range"] {
 }
 
 .help_display {
-	font-size: 16px;
+	font-size: 14px;
 	color: #ababab;
 }
 #main_page {

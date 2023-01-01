@@ -72,6 +72,28 @@
 						<div class="help_display" id="red_scatter_base_display">4.5</div>
 						<input type="range" min="1.01" max="20.0" step="0.01" value="4.5" class="slider" id="red_scatter_base">
 					</div>
+					<div>
+						Atmosphere color
+						<div class="help_display">
+							<span>RGB = (</span>
+							<span id="atmo_color_R_display">1</span>,
+							<span id="atmo_color_G_display">1</span>,
+							<span id="atmo_color_B_display">1</span>
+							<span>)</span>
+						</div>
+						<div>
+							<input type="range" min="0" max="1" step="0.01" value="1" class="color_slider" id="atmo_color_R">
+							<input type="range" min="0" max="1" step="0.01" value="1" class="color_slider" id="atmo_color_G">
+							<input type="range" min="0" max="1" step="0.01" value="1" class="color_slider" id="atmo_color_B">
+						</div>
+					</div>
+					<div>
+						Star temperature
+						<div>
+							<span class="help_display" id="star_temp_display">4000</span>  <span id="star_temp_display_block">█</span>
+						</div>
+						<input type="range" min="4000" max="10000" step="50" value="5400" class="slider" id="star_temp">
+					</div>
 				</div>
 			</div>
 		</div>
