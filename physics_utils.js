@@ -48,11 +48,11 @@ export function temperature_to_rgb(t) {
 	return [red, green, blue];
 }
 
-export function rgb_to_hex(rgb_list){
+export function rgb_to_hex(rgb_list, scale_multiplier){
 	var c = [
-		Number(parseInt(rgb_list[0] * 255)).toString(16),
-		Number(parseInt(rgb_list[1] * 255)).toString(16),
-		Number(parseInt(rgb_list[2] * 255)).toString(16)
+		Number(parseInt(rgb_list[0] * scale_multiplier)).toString(16),
+		Number(parseInt(rgb_list[1] * scale_multiplier)).toString(16),
+		Number(parseInt(rgb_list[2] * scale_multiplier)).toString(16)
 	];
 	return "#" + (c[0].length == 1 ? "0" : "") + c[0] + (c[1].length == 1 ? "0" : "") + c[1] + (c[2].length == 1 ? "0" : "") + c[2];
 }

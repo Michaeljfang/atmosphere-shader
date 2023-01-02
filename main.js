@@ -38,8 +38,8 @@ const parameters = {
 	'temperature': 300,
 	'surface_density': 10,
 
-	'red_scatter_base': 4.5,
-	'opacity_curve_base': 30,
+	'red_scatter_base': 12,
+	'opacity_curve_base': 40,
 
 	'atmo_color_R': 0.78,
 	'atmo_color_G': 0.85,
@@ -99,11 +99,18 @@ slider_controls["temperature"].addEventListener("input", () => {
 
 slider_controls["star_temp"].addEventListener("input", () => {
 	var rgb_list = physics_utils.temperature_to_rgb(parameters['star_temp']);
-	var rgb_hex = physics_utils.rgb_to_hex(rgb_list);
+	var rgb_hex = physics_utils.rgb_to_hex(rgb_list, 255);
 	document.getElementById("star_temp_display_block").innerHTML = "█".fontcolor(rgb_hex);
 	parameters['star_rgb'] = new THREE.Vector3(rgb_list[0], rgb_list[1], rgb_list[2]);
-	//dir_light.color.setHex(rgb_hex);
+	scene.remove(dir_light);
+	dir_light.dispose();
+	dir_light = new THREE.DirectionalLight(rgb_hex,  1);
+	dir_light.position.set()
+	var light_position = polar_to_cartesian(light_distance, light_direction[0], light_direction[1]);
+	dir_light.position.set(light_position[0], light_position[1], light_position[2]);
+	scene.add(dir_light);
 })
+
 
 // number inputs
 const number_controls = {
@@ -238,7 +245,6 @@ function light_rotation(key_code){
 	light_direction[1] = Math.min(Math.max(light_direction[1], -90), 90);
 
 	var light_position = polar_to_cartesian(light_distance, light_direction[0], light_direction[1]);
-
 	dir_light.position.set(light_position[0], light_position[1], light_position[2]);
 }
 
@@ -338,8 +344,14 @@ function event_handler(key) {
 	}
 }
 
+// var time = 100000;
+// var frame_time = 1000;
 var cam_to_atmo;
 function animate() {
+	// frame_time = Date.now() - time;
+	// time = Date.now();
+	// document.getElementById("fps").textContent = frame_time == 0 ? document.getElementById("fps").textContent : Number.parseInt(frame_time);
+
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	persp.aspect = window.innerWidth/window.innerHeight;
@@ -393,13 +405,13 @@ function start_page(){
 		}
 	})
 	if (!ready){return;}
-	console.log("resources ready, building scene")
+	console.log("resources ready, building scene");
 
 	// all finished.
 	const earth_mat = new THREE.MeshStandardMaterial({
 		map: earth_diffuse_tex, roughnessMap: earth_roughness_tex
 		//needsUpdate: true
-	})
+	});
 	
 	planet = new THREE.Mesh(planet_mesh, earth_mat);
 	scene.add(planet);
@@ -424,11 +436,12 @@ function start_page(){
 			atmo_colors: {value: new THREE.Vector3(parameters['atmo_color_R'], parameters['atmo_color_G'], parameters['atmo_color_B'])},
 			star_rgb: {value: parameters['star_rgb']},
 		}
-	})
-	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)
-	scene.add(atmo)
+	});
+	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom);
+	scene.add(atmo);
 
-	console.log("done")
+	console.log("done");
+	document.body.removeChild(document.getElementById("loading_screen"));
 	animate();
 }
 

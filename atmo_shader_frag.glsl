@@ -59,7 +59,7 @@ float density_curve(float queried_altitude,
 void main(){
 	// units: 1 = 1Mm, kg, s, K.
 
-	cameraPosition;
+	//cameraPosition;
 
 	vec3 world_frag_position = frag_position.xyz + obj_position.xyz;
 
@@ -134,7 +134,7 @@ void main(){
 	}
 
 	// compute opacity. supposedly it's an exponential relationship with density
-	float opacity_from_mass = 1.0 - pow(opacity_curve_base, -accumulated_mass/8.0);
+	float opacity_from_mass = 1.0 - pow(opacity_curve_base, -accumulated_mass/4.0);
 
 	// compute colors.
 	float light_traveled_mass = total_accumulated_mass_along_the_light_paths / (geometric_length * 10.0);

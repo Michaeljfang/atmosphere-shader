@@ -37,7 +37,7 @@ uniform float light_path_samples;
 
 
 void main(){
-	obj_position;
+	//obj_position;
 	vpos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	frag_position = position;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
