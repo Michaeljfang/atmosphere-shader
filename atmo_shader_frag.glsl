@@ -8,6 +8,10 @@ uniform float planet_mass;
 uniform float temperature; // temperature of atmosphere (assuming uniform temperature)
 uniform float surface_density; // density of atmosphere at the planet surface
 uniform float red_scatter_base; // exponential base to calculate remaining unscattered red light after some distance
+uniform float opacity_curve_base;
+
+uniform vec3 atmo_colors;
+uniform vec3 star_rgb;
 
 
 uniform float atmo_radius;
@@ -55,7 +59,7 @@ float density_curve(float queried_altitude,
 void main(){
 	// units: 1 = 1Mm, kg, s, K.
 
-	cameraPosition;
+	//cameraPosition;
 
 	vec3 world_frag_position = frag_position.xyz + obj_position.xyz;
 
@@ -99,6 +103,8 @@ void main(){
 		// mass at the query point multiplied by step size
 		float this_mass = step_x_size * density_curve(queried_altitude, surface_density, temperature, planet_mass, planet_radius, gravitational_acceleration, GAS_CONSTANT);
 		accumulated_mass += this_mass;
+
+
 		// COLOR
 		// obj_to_x: x is the sample point along the view path.
 		vec3 obj_to_x = obj_to_closest_point + step_x * normalize(-cam_to_frag);
@@ -128,13 +134,11 @@ void main(){
 	}
 
 	// compute opacity. supposedly it's an exponential relationship with density
-	float mass_to_opacity_curve_power_base = 10.0;
-	float opacity_from_mass = 1.0 - pow(mass_to_opacity_curve_power_base, -accumulated_mass/8.0);
+	float opacity_from_mass = 1.0 - pow(opacity_curve_base, -accumulated_mass/4.0);
 
 	// compute colors.
 	float light_traveled_mass = total_accumulated_mass_along_the_light_paths / (geometric_length * 10.0);
-	vec3 atmospheric_color = vec3(0.70, 0.74, 1.0);
-	vec3 remaining_colors = atmospheric_color * vec3(
+	vec3 remaining_colors = atmo_colors * star_rgb * vec3(
 		pow(red_scatter_base, -light_traveled_mass),
 		pow(red_scatter_base * pow(700.0/550.0, 4.0), -light_traveled_mass),
 		pow(red_scatter_base * pow(700.0/470.0, 4.0), -light_traveled_mass)

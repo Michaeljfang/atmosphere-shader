@@ -9,7 +9,10 @@ uniform float atmo_radius;
 uniform float temperature;
 uniform float surface_density;
 uniform float red_scatter_base;
+uniform float opacity_curve_base;
 
+uniform vec3 atmo_colors;
+uniform vec3 star_rgb;
 
 uniform float view_path_samples;
 uniform float light_path_samples;
@@ -34,7 +37,7 @@ uniform float light_path_samples;
 
 
 void main(){
-	obj_position;
+	//obj_position;
 	vpos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 	frag_position = position;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);

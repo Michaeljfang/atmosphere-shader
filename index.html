@@ -1,28 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="css/main.css"/>
+	<link rel="stylesheet" href="css/main.css" />
 	<title>Create a planetary atmosphere</title>
 </head>
+
 <body>
+	<div class="loading_screen" id="loading_screen">
+		<div class="loading_spinner"></div>
+	</div>
 	<noscript id="noscript">
-			Please enable JavaScript for the 3D visuals.		
+		Please enable JavaScript for the 3D visuals.
 	</noscript>
-	<div id="loading_screen">LOADING</div>
 	<canvas id="bg"></canvas>
 	<file id="frag" data="./atmo_shader_frag.glsl" type="text/plain"></file>
 	<file id="vert" data="./atmo_shader_vert.glsl" type="text/plain"></file>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.js" integrity="sha512-yewcaF6iD3IU62N4N33Y8C7Zo3jx50MUaEMII/kQAdWnLdw4f3rab2Ay9Xp4O6waXDZhx7i/nvm+qGuJhXF+uw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.js"
+		integrity="sha512-yewcaF6iD3IU62N4N33Y8C7Zo3jx50MUaEMII/kQAdWnLdw4f3rab2Ay9Xp4O6waXDZhx7i/nvm+qGuJhXF+uw=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<!-- <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script> -->
 	<script type="module" src="./physics_utils.js"></script>
 	<script type="module" src="./main.js"></script>
 
 	<h1>Create a planetary atmosphere</h1>
+	<!-- <div id="fps">0</div> -->
 	<div id="main_page">
 		<div class="controls_frame" id="atmo_params">
-			<h2>Atmosphere parameters</h2>
+			<h2>Physical parameters</h2>
 			<div class="controls_scrollbox">
 				<div class="controls">
 					<div class="error_message_lmao"></div>
@@ -47,6 +55,14 @@
 						<div class="help_display" id="temperature_advice">temperate</div>
 						<input type="range" min="200" max="750" step="10" value="300" class="slider" id="temperature">
 					</div>
+					<div>
+						Star temperature
+						<div>
+							<span class="help_display" id="star_temp_display">4000</span><span class="help_display">
+								K</span> <span id="star_temp_display_block">█</span>
+						</div>
+						<input type="range" min="1200" max="10000" step="50" value="5400" class="slider" id="star_temp">
+					</div>
 				</div>
 			</div>
 		</div>
@@ -59,7 +75,8 @@
 						View path samples
 						<div class="help_display" id="view_path_samples_display">210</div>
 						<div class="help_display" id="view_path_samples_advice">decent</div>
-						<input type="range" min="5" max="1500" step="5" value="210" class="slider" id="view_path_samples">
+						<input type="range" min="5" max="1500" step="5" value="210" class="slider"
+							id="view_path_samples">
 					</div>
 					<div>
 						Light path samples
@@ -67,10 +84,36 @@
 						<input type="range" min="3" max="20" step="1" value="5" class="slider" id="light_path_samples">
 					</div>
 					<div>
+						Density-Opacity curve
+						<div class="help_display">Exponential base for density-to-opacity conversion</div>
+						<div class="help_display" id="opacity_curve_base_display">40</div>
+						<input type="range" min="2" max="200" step="1" value="40" class="slider"
+							id="opacity_curve_base">
+					</div>
+					<div>
 						Color scatter
 						<div class="help_display">Exponential base for red light scattering</div>
-						<div class="help_display" id="red_scatter_base_display">4.5</div>
-						<input type="range" min="1.01" max="20.0" step="0.01" value="4.5" class="slider" id="red_scatter_base">
+						<div class="help_display" id="red_scatter_base_display">12.0</div>
+						<input type="range" min="1.01" max="20.0" step="0.01" value="12.0" class="slider"
+							id="red_scatter_base">
+					</div>
+					<div>
+						Atmosphere base color
+						<div class="help_display">
+							<span>RGB = (</span>
+							<span id="atmo_color_R_display">0.78</span>,
+							<span id="atmo_color_G_display">0.85</span>,
+							<span id="atmo_color_B_display">1</span>
+							<span>)</span>
+						</div>
+						<div>
+							<input type="range" min="0" max="1" step="0.01" value="0.78" class="color_slider"
+								id="atmo_color_R">
+							<input type="range" min="0" max="1" step="0.01" value="0.85" class="color_slider"
+								id="atmo_color_G">
+							<input type="range" min="0" max="1" step="0.01" value="1" class="color_slider"
+								id="atmo_color_B">
+						</div>
 					</div>
 				</div>
 			</div>
@@ -81,10 +124,14 @@
 		<br>
 		<span class="small_text">
 			This site downloads the three.js library from Cloudflare CDNs.<br>
-			Earth textures derived from a 2002 mosaic of Earth: <a class="link" href="https://en.wikipedia.org/wiki/File:Blue_Marble_2002.png">WikiMedia page</a> /
-			<a href="https://visibleearth.nasa.gov/images/57752/blue-marble-land-surface-shallow-water-and-shaded-topography">NASA source</a>
+			Earth textures derived from a 2002 mosaic of Earth: <a class="link"
+				href="https://en.wikipedia.org/wiki/File:Blue_Marble_2002.png">WikiMedia page</a> /
+			<a
+				href="https://visibleearth.nasa.gov/images/57752/blue-marble-land-surface-shallow-water-and-shaded-topography">NASA
+				source</a>
 		</span>
 	</div>
 
 </body>
+
 </html>
