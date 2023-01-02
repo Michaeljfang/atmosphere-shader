@@ -1,6 +1,6 @@
 import * as physics_utils from "./physics_utils.js";
 const scene = new THREE.Scene();
-const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 2000);
+const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.001, 2000);
 // FOV, aspect ratio, near clip, far clip
 const renderer = new THREE.WebGLRenderer({
 	canvas: document.querySelector('#bg'),
@@ -39,12 +39,14 @@ const parameters = {
 	'surface_density': 10,
 
 	'red_scatter_base': 4.5,
+	'opacity_curve_base': 30,
 
-	'atmo_color_R': 1,
-	'atmo_color_G': 1,
+	'atmo_color_R': 0.78,
+	'atmo_color_G': 0.85,
 	'atmo_color_B': 1,
 	
 	'star_temp': 5400,
+	'star_rgb': new THREE.Vector3(1,1,1),
 }
 
 function polar_to_cartesian(radius, longitude, latitude){
@@ -65,7 +67,7 @@ persp.position.set(0,0,11);
 // loop set up and validate input fields.
 // sliders
 const slider_controls = {
-	"view_path_samples": null, "light_path_samples": null, "temperature": null, "surface_density": null, "red_scatter_base": null,
+	"view_path_samples": null, "light_path_samples": null, "temperature": null, "surface_density": null, "red_scatter_base": null, "opacity_curve_base": null,
 	"atmo_color_R": null, "atmo_color_G": null, "atmo_color_B": null,
 	"star_temp": null, 
 };
@@ -96,11 +98,11 @@ slider_controls["temperature"].addEventListener("input", () => {
 });
 
 slider_controls["star_temp"].addEventListener("input", () => {
-	document.getElementById("star_temp_display_block").innerHTML = "█".fontcolor(
-		physics_utils.wavelength_to_rgb(
-			physics_utils.temperature_to_wavelength(parameters['star_temp'])
-		)
-	);
+	var rgb_list = physics_utils.temperature_to_rgb(parameters['star_temp']);
+	var rgb_hex = physics_utils.rgb_to_hex(rgb_list);
+	document.getElementById("star_temp_display_block").innerHTML = "█".fontcolor(rgb_hex);
+	parameters['star_rgb'] = new THREE.Vector3(rgb_list[0], rgb_list[1], rgb_list[2]);
+	//dir_light.color.setHex(rgb_hex);
 })
 
 // number inputs
@@ -169,7 +171,7 @@ document.addEventListener("keyup", (e) => {
 
 var light_direction = [45, 30];
 var light_distance = 20;
-const dir_light = new THREE.DirectionalLight(0xffffff,  1);
+var dir_light = new THREE.DirectionalLight(0xffffff,  1);
 
 dir_light.position.set(
 	light_distance * Math.cos(deg_to_rad(light_direction[1])) * Math.sin(deg_to_rad(light_direction[0])),
@@ -291,13 +293,14 @@ function event_handler(key) {
 		planet.visible = !planet.visible;
 	}
 		
-	else if (key.keyCode == 219){
-		atmo_mat_custom.side = THREE.BackSide;
-	} else if (key.keyCode == 221){
-		atmo_mat_custom.side = THREE.FrontSide;
-	} else if (key.keyCode == 220){
-		atmo_mat_custom.side = THREE.DoubleSide;
-	} else if (key.keyCode == 12 || key.keyCode == 101){
+	// else if (key.keyCode == 219){
+	// 	atmo_mat_custom.side = THREE.BackSide;
+	// } else if (key.keyCode == 221){
+	// 	atmo_mat_custom.side = THREE.FrontSide;
+	// } else if (key.keyCode == 220){
+	// 	atmo_mat_custom.side = THREE.DoubleSide;
+	// }
+	else if (key.keyCode == 12 || key.keyCode == 101){
 		atmo.position.set(0,0,0);
 		atmo.rotation.set(0,0,0);
 	}
@@ -335,7 +338,7 @@ function event_handler(key) {
 	}
 }
 
-
+var cam_to_atmo;
 function animate() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight);
@@ -343,6 +346,14 @@ function animate() {
 	persp.updateProjectionMatrix();
 	// mesh.rotation.x += 0.007;
 
+	// check if cam is in atmosphere and switch render sides.
+	cam_to_atmo = new THREE.Vector3(persp.position.x, persp.position.y, persp.position.z).sub(new THREE.Vector3(atmo.position.x, atmo.position.y, atmo.position.z)).length();
+	if (cam_to_atmo > parameters['atmo_radius']){
+		atmo_mat_custom.side = THREE.FrontSide;
+	} else {
+		atmo_mat_custom.side = THREE.BackSide;
+	}
+	/////////////////////////////////////
 
 	planet.rotation.y += y_rotation_speed;
 
@@ -361,7 +372,9 @@ function animate() {
 	atmo_mat_custom.uniforms.temperature.value = parameters['temperature'];
 	atmo_mat_custom.uniforms.surface_density.value = parameters['surface_density'];
 	atmo_mat_custom.uniforms.red_scatter_base.value = parameters['red_scatter_base'];
-	atmo_mat_custom.uniforms.star_colors.value = new THREE.Vector3(parameters['atmo_color_R'], parameters['atmo_color_G'], parameters['atmo_color_B']);
+	atmo_mat_custom.uniforms.opacity_curve_base.value = parameters['opacity_curve_base'];
+	atmo_mat_custom.uniforms.atmo_colors.value = new THREE.Vector3(parameters['atmo_color_R'], parameters['atmo_color_G'], parameters['atmo_color_B']);
+	atmo_mat_custom.uniforms.star_rgb.value = parameters['star_rgb'];
 
 	requestAnimationFrame(animate);
 	renderer.render(scene, persp);
@@ -406,8 +419,10 @@ function start_page(){
 			temperature: {value: parameters['temperature']},
 			surface_density: {value: parameters['surface_density']},
 			red_scatter_base: {value: parameters['red_scatter_base']},
+			opacity_curve_base: {value: parameters['opacity_curve_base']},
 
-			star_colors: {value: new THREE.Vector3(parameters['atmo_color_R'], parameters['atmo_color_G'], parameters['atmo_color_B'])},
+			atmo_colors: {value: new THREE.Vector3(parameters['atmo_color_R'], parameters['atmo_color_G'], parameters['atmo_color_B'])},
+			star_rgb: {value: parameters['star_rgb']},
 		}
 	})
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom)

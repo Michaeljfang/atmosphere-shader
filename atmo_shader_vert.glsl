@@ -9,8 +9,10 @@ uniform float atmo_radius;
 uniform float temperature;
 uniform float surface_density;
 uniform float red_scatter_base;
+uniform float opacity_curve_base;
 
-uniform vec3 star_colors;
+uniform vec3 atmo_colors;
+uniform vec3 star_rgb;
 
 uniform float view_path_samples;
 uniform float light_path_samples;

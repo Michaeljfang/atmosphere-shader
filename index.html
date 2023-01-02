@@ -67,6 +67,12 @@
 						<input type="range" min="3" max="20" step="1" value="5" class="slider" id="light_path_samples">
 					</div>
 					<div>
+						Density-Opacity curve
+						<div class="help_display">Exponential base for density-to-opacity conversion</div>
+						<div class="help_display" id="opacity_curve_base_display">30</div>
+						<input type="range" min="2" max="200" step="1" value="30" class="slider" id="opacity_curve_base">
+					</div>
+					<div>
 						Color scatter
 						<div class="help_display">Exponential base for red light scattering</div>
 						<div class="help_display" id="red_scatter_base_display">4.5</div>
@@ -76,14 +82,14 @@
 						Atmosphere color
 						<div class="help_display">
 							<span>RGB = (</span>
-							<span id="atmo_color_R_display">1</span>,
-							<span id="atmo_color_G_display">1</span>,
+							<span id="atmo_color_R_display">0.78</span>,
+							<span id="atmo_color_G_display">0.85</span>,
 							<span id="atmo_color_B_display">1</span>
 							<span>)</span>
 						</div>
 						<div>
-							<input type="range" min="0" max="1" step="0.01" value="1" class="color_slider" id="atmo_color_R">
-							<input type="range" min="0" max="1" step="0.01" value="1" class="color_slider" id="atmo_color_G">
+							<input type="range" min="0" max="1" step="0.01" value="0.78" class="color_slider" id="atmo_color_R">
+							<input type="range" min="0" max="1" step="0.01" value="0.85" class="color_slider" id="atmo_color_G">
 							<input type="range" min="0" max="1" step="0.01" value="1" class="color_slider" id="atmo_color_B">
 						</div>
 					</div>
@@ -92,7 +98,7 @@
 						<div>
 							<span class="help_display" id="star_temp_display">4000</span>  <span id="star_temp_display_block">█</span>
 						</div>
-						<input type="range" min="4000" max="10000" step="50" value="5400" class="slider" id="star_temp">
+						<input type="range" min="1200" max="10000" step="50" value="5400" class="slider" id="star_temp">
 					</div>
 				</div>
 			</div>
