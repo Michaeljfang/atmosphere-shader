@@ -18,22 +18,12 @@ var input_delay;
 
 var y_rotation_speed = 0.005;
 
-const resources_list = {
-	"planet_tex": false,
-	"planet_ref": false,
-	//"planet_bmp": false,
-	"atmo_frag": false,
-	"atmo_vert": false,
-	"planet_frag": false,
-	"planet_vert": false,
-}
-
 const parameters = {
 	'planet_radius': 6.378,
 	'atmo_radius': 6.478,
 	'planet_mass': 60000,
 
-	'view_path_samples': 210.0,
+	'view_path_samples': 100.0,
 	'light_path_samples': 5.0,
 	'temperature': 300,
 	'surface_density': 10,
@@ -197,40 +187,36 @@ scene.add(ambient);
 var planet_mesh = new THREE.SphereGeometry(1, 128, 64);
 const texture_loader = new THREE.TextureLoader();
 
-var earth_diffuse_tex;
-texture_loader.load('./tex/earth_eq.png', (response) => {
-	earth_diffuse_tex = response; resources_list["planet_tex"] = true; start_page();
-});
-var earth_roughness_tex;
-texture_loader.load('./tex/earth_land_tiny.jpg', (response) => {
-	earth_roughness_tex = response; resources_list["planet_ref"] = true; start_page();
-});
+const resources = {
+	"planet_tex": {"loader": texture_loader,"source": "./tex/earth_eq.png", "item": null},
+	"planet_ref": {"loader": texture_loader,"source": "./tex/earth_land_tiny.jpg", "item": null},
+	"atmo_frag": {"loader": file_loader,"source": "./atmo_shader_frag.glsl", "item": null},
+	"atmo_vert": {"loader": file_loader,"source": "./atmo_shader_vert.glsl", "item": null},
+	"planet_frag": {"loader": file_loader,"source": "./planet_shader_frag.glsl", "item": null},
+	"planet_vert": {"loader": file_loader,"source": "./planet_shader_vert.glsl", "item": null},
+}
+var resources_names = Object.keys(resources);
+var load_counter = 0;
+
+function sequential_loading(){
+	var name = resources_names[load_counter]
+	console.log(name);
+	resources[name]["loader"].load(resources[name]["source"], (response) => {
+		resources[name]["item"] = response;
+		load_counter++;
+		if (load_counter >= resources_names.length) start_page();
+		else {
+			sequential_loading();
+		}
+	})
+}
+
 
 const atmo_sphere_subdivision = 128;
 var atmo_mesh = new THREE.SphereGeometry(parameters['atmo_radius'], atmo_sphere_subdivision, Math.ceil(atmo_sphere_subdivision/2));
 const atmo_mat = new THREE.MeshPhysicalMaterial({
 	color: 0x888890, opacity: 0.5, transparent: true
 })
-
-var planet_shader_frag;
-file_loader.load("./planet_shader_frag.glsl", (response) => {
-	planet_shader_frag = response; resources_list['planet_frag'] = true; start_page();
-});
-var atmo_shader_vert;
-file_loader.load("./planet_shader_vert.glsl", (response) => {
-	atmo_shader_vert = response; resources_list['planet_vert'] = true; start_page();
-});
-
-
-var atmo_shader_frag;
-file_loader.load("./atmo_shader_frag.glsl", (response) => {
-	atmo_shader_frag = response; resources_list['atmo_frag'] = true; start_page();
-});
-var atmo_shader_vert;
-file_loader.load("./atmo_shader_vert.glsl", (response) => {
-	atmo_shader_vert = response; resources_list['atmo_vert'] = true; start_page();
-});
-
 
 function light_rotation(key_code){
 	
@@ -394,22 +380,9 @@ function animate() {
 
 function start_page(){
 
-	// whenever a resource is loaded, it requests to start the rendering.
-	// When this function gets the request, it checks if all resources are loaded.
-	// If all are loaded, start render, else just return and do nothing.
-	var ready = true;
-	Object.keys(resources_list).forEach((loaded) => {
-		if (resources_list[loaded] == false){
-			ready = false;
-			return;
-		}
-	})
-	if (!ready){return;}
-	console.log("resources ready, building scene");
-
 	// all finished.
 	const earth_mat = new THREE.MeshStandardMaterial({
-		map: earth_diffuse_tex, roughnessMap: earth_roughness_tex
+		map: resources["planet_tex"]["item"], roughnessMap: resources["planet_ref"]["item"]
 		//needsUpdate: true
 	});
 	
@@ -419,7 +392,7 @@ function start_page(){
 	planet.rotation.x = 0.8;
 
 	atmo_mat_custom = new THREE.ShaderMaterial({
-		fragmentShader: atmo_shader_frag, vertexShader: atmo_shader_vert, transparent: true, wireframe: false,
+		fragmentShader: resources["atmo_frag"]["item"], vertexShader: resources["atmo_vert"]["item"], transparent: true, wireframe: false,
 		uniforms: {
 			obj_position: {value: new THREE.Vector3(0.0,0.0,0.0)},
 			sun_position: {value: new THREE.Vector3(dir_light.position.xyz)},
@@ -440,9 +413,9 @@ function start_page(){
 	atmo = new THREE.Mesh(atmo_mesh, atmo_mat_custom);
 	scene.add(atmo);
 
-	console.log("done");
 	document.body.removeChild(document.getElementById("loading_screen"));
 	animate();
 }
 
 
+sequential_loading();
