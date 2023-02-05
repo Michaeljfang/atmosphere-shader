@@ -19,10 +19,16 @@
 	<canvas id="bg"></canvas>
 	<file id="frag" data="./atmo_shader_frag.glsl" type="text/plain"></file>
 	<file id="vert" data="./atmo_shader_vert.glsl" type="text/plain"></file>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.js"
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.js"
 		integrity="sha512-yewcaF6iD3IU62N4N33Y8C7Zo3jx50MUaEMII/kQAdWnLdw4f3rab2Ay9Xp4O6waXDZhx7i/nvm+qGuJhXF+uw=="
-		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-	<!-- <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script> -->
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+	<script type="importmap">
+		{
+			"imports": {
+				"three": "https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js"
+			}
+		}
+	</script>
 	<script type="module" src="./physics_utils.js"></script>
 	<script type="module" src="./main.js"></script>
 
@@ -123,7 +129,7 @@
 		<a href="https://www.github.com/michaeljfang/atmosphere-shader">HTML and GLSL source code</a>
 		<br>
 		<span class="small_text">
-			This site downloads the three.js library from Cloudflare CDNs.<br>
+			This site downloads the three.js library & addons from jsDelivr CDNs.<br>
 			Earth textures derived from a 2002 mosaic of Earth: <a class="link"
 				href="https://en.wikipedia.org/wiki/File:Blue_Marble_2002.png">WikiMedia page</a> /
 			<a

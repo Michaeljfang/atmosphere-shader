@@ -1,4 +1,10 @@
 import * as physics_utils from "./physics_utils.js";
+
+import * as THREE from 'three';
+
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/controls/OrbitControls.js";
+
+
 const scene = new THREE.Scene();
 const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.001, 2000);
 // FOV, aspect ratio, near clip, far clip
@@ -7,6 +13,8 @@ const renderer = new THREE.WebGLRenderer({
 	//antialiasing:true
 });
 THREE.Cache.enabled = true;
+
+const controls = new OrbitControls(persp, document.querySelector('#bg'));
 
 const file_loader = new THREE.FileLoader();
 file_loader.setResponseType("text");
@@ -240,25 +248,25 @@ function event_handler(key) {
 	if(document.activeElement !== document.body){return;}
 	// console.log(key);
 	// camera/planet position
-	if (188 === key.keyCode && persp.position.z < 400){
-		if (key.shiftKey){planet.position.z *= 1.05;}
-		else {persp.position.z *= 1.05;}
-	} else if (190 === key.keyCode && persp.position.z > 0.4 + parameters['planet_radius']){
-		if (key.shiftKey){planet.position.z /= 1.05;}
-		else {persp.position.z /= 1.05;}
-	} else if (65 === key.keyCode && persp.position.x > -2) {
-		if (key.shiftKey){planet.position.x -= 0.1;}
-		else {persp.position.x -= 0.1;}
-	} else if (68 === key.keyCode && persp.position.x < 2) {
-		if (key.shiftKey){planet.position.x += 0.1;}
-		else {persp.position.x += 0.1;}
-	} else if (83 === key.keyCode && persp.position.y > -1) {
-		if (key.shiftKey){planet.position.y -= 0.1;}
-		else {persp.position.y -= 0.1;}
-	} else if (87 === key.keyCode && persp.position.y < 1) {
-		if (key.shiftKey){planet.position.y += 0.1;}
-		else {persp.position.y += 0.1;}
-	}
+	// if (188 === key.keyCode && persp.position.z < 400){
+	// 	if (key.shiftKey){planet.position.z *= 1.05;}
+	// 	else {persp.position.z *= 1.05;}
+	// } else if (190 === key.keyCode && persp.position.z > 0.4 + parameters['planet_radius']){
+	// 	if (key.shiftKey){planet.position.z /= 1.05;}
+	// 	else {persp.position.z /= 1.05;}
+	// } else if (65 === key.keyCode && persp.position.x > -2) {
+	// 	if (key.shiftKey){planet.position.x -= 0.1;}
+	// 	else {persp.position.x -= 0.1;}
+	// } else if (68 === key.keyCode && persp.position.x < 2) {
+	// 	if (key.shiftKey){planet.position.x += 0.1;}
+	// 	else {persp.position.x += 0.1;}
+	// } else if (83 === key.keyCode && persp.position.y > -1) {
+	// 	if (key.shiftKey){planet.position.y -= 0.1;}
+	// 	else {persp.position.y -= 0.1;}
+	// } else if (87 === key.keyCode && persp.position.y < 1) {
+	// 	if (key.shiftKey){planet.position.y += 0.1;}
+	// 	else {persp.position.y += 0.1;}
+	// }
 	
 	else if (key.keyCode == 173 && persp.fov < 175){
 		persp.fov += 5;
@@ -337,6 +345,8 @@ function animate() {
 	// frame_time = Date.now() - time;
 	// time = Date.now();
 	// document.getElementById("fps").textContent = frame_time == 0 ? document.getElementById("fps").textContent : Number.parseInt(frame_time);
+
+	controls.update();
 
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight);
