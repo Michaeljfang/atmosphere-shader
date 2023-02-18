@@ -60,7 +60,7 @@ const deg_to_rad = (deg) => (Math.PI/180) * deg;
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild( renderer.domElement );
-persp.position.set(0,0,11);
+persp.position.set(0,11,11);
 
 // loop set up and validate input fields.
 // sliders
@@ -340,12 +340,16 @@ function event_handler(key) {
 
 // var time = 100000;
 // var frame_time = 1000;
+var prev_frame = new Date();
 var cam_to_atmo;
 function animate() {
 	// frame_time = Date.now() - time;
 	// time = Date.now();
 	// document.getElementById("fps").textContent = frame_time == 0 ? document.getElementById("fps").textContent : Number.parseInt(frame_time);
 
+	var current_frame = new Date();
+	var frame_time = (current_frame - prev_frame) / 1000;
+	prev_frame = current_frame;
 	controls.update();
 
 	renderer.setPixelRatio(window.devicePixelRatio);
@@ -362,8 +366,7 @@ function animate() {
 		atmo_mat_custom.side = THREE.BackSide;
 	}
 	/////////////////////////////////////
-
-	planet.rotation.y += y_rotation_speed;
+	planet.rotation.y += y_rotation_speed * frame_time * 60;
 
 	// update shader uniforms
 	atmo_mat_custom.uniforms.obj_position.value = new THREE.Vector3(
@@ -399,7 +402,7 @@ function start_page(){
 	planet = new THREE.Mesh(planet_mesh, earth_mat);
 	scene.add(planet);
 	planet.scale.set(parameters['planet_radius'], parameters['planet_radius'], parameters['planet_radius']);
-	planet.rotation.x = 0.8;
+	//planet.rotation.x = 0.8;
 
 	atmo_mat_custom = new THREE.ShaderMaterial({
 		fragmentShader: resources["atmo_frag"]["item"], vertexShader: resources["atmo_vert"]["item"], transparent: true, wireframe: false,
