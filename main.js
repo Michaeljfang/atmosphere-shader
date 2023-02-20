@@ -8,10 +8,22 @@ import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.149.0/exampl
 const scene = new THREE.Scene();
 const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.001, 2000);
 // FOV, aspect ratio, near clip, far clip
-const renderer = new THREE.WebGLRenderer({
-	canvas: document.querySelector('#bg'),
-	//antialiasing:true
-});
+var renderer;
+try {
+	renderer = new THREE.WebGLRenderer({
+		canvas: document.querySelector('#bg'),
+		//antialiasing:true
+	});
+	throw new fuck;
+} catch (e){
+	document.getElementById("main_page").innerHTML = "";
+	document.getElementById("loading_screen").innerHTML =
+		'<div><div style="z-index: 20;font-size:30px;position:relative;">Couldn\'t access graphics device</div><d'+
+		'iv style="z-index: 20;font-size:17px;">Please check your system graphics, browser settings and reload this page.<br>' +
+		'Some script/fingerprinting blockers can block access to webGL.<br>' +
+		'If problem persists, raise an issue at www.github.com/michaeljfang/atmosphere-shader</div></div>';
+	throw new Error("Couldn't load three.js scene. See text in page.");
+}
 THREE.Cache.enabled = true;
 
 const controls = new OrbitControls(persp, document.querySelector('#bg'));
