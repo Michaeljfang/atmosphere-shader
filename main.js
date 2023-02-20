@@ -14,7 +14,6 @@ try {
 		canvas: document.querySelector('#bg'),
 		//antialiasing:true
 	});
-	throw new fuck;
 } catch (e){
 	document.getElementById("main_page").innerHTML = "";
 	document.getElementById("loading_screen").innerHTML =
