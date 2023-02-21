@@ -1,6 +1,6 @@
 import * as physics_utils from "./physics_utils.js";
 
-import * as THREE from 'three';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js';
 
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/controls/OrbitControls.js";
 
@@ -9,6 +9,7 @@ const scene = new THREE.Scene();
 const persp = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.001, 2000);
 // FOV, aspect ratio, near clip, far clip
 var renderer;
+
 try {
 	renderer = new THREE.WebGLRenderer({
 		canvas: document.querySelector('#bg'),
